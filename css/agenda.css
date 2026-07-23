@@ -1,0 +1,382 @@
+/* ============================================================
+   agenda.css
+   Vista de Agenda: el elemento firma del proyecto — un gutter de
+   horas tipo números de línea de editor, con un cursor parpadeante
+   marcando la hora actual. Ver PROYECTO.md sección 9.4.
+   ============================================================ */
+
+.timeline {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--gutter-width) 1fr;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+
+.timeline__gutter {
+  background: var(--bg-gutter);
+  border-right: 1px solid var(--border-subtle);
+}
+
+.timeline__hour-label {
+  height: 64px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: var(--space-1) var(--space-2) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-faint);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.timeline__hours {
+  position: relative;
+}
+
+.timeline__hour-row {
+  height: 64px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: var(--space-1) var(--space-2);
+  position: relative;
+}
+
+/* --- Elemento firma: línea de "hora actual" con cursor parpadeante --- */
+.now-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1.5px solid var(--accent-amber);
+  z-index: 2;
+}
+.now-line::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: -5px;
+  width: 8px;
+  height: 11px;
+  background: var(--accent-amber);
+  animation: blink-cursor 1.1s steps(1) infinite;
+}
+.now-line::after {
+  content: attr(data-time);
+  position: absolute;
+  right: var(--space-2);
+  top: -9px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  background: var(--accent-amber);
+  color: #1a1204;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
+@keyframes blink-cursor {
+  0%, 49%  { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* --- Bloques de evento sobre el timeline --- */
+.event-block {
+  position: absolute;
+  left: var(--space-2);
+  right: var(--space-2);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--block-color, var(--accent-cyan));
+  background: color-mix(in srgb, var(--block-color, var(--accent-cyan)) 14%, var(--bg-surface));
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--fs-sm);
+  overflow: hidden;
+  z-index: 1;
+}
+.event-block__title { font-weight: 600; }
+.event-block__meta {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.event-block--trabajo  { --block-color: var(--accent-cyan); }
+.event-block--personal { --block-color: var(--accent-violet); }
+.event-block--salud    { --block-color: var(--accent-success); }
+.event-block--estudio  { --block-color: var(--accent-amber); }
+
+/* ============================================================
+   Barra de herramientas: selector de vista + navegación de fecha
+   ============================================================ */
+.agenda-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.view-switcher {
+  display: inline-flex;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.view-switcher__btn {
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  border: none;
+  border-right: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  padding: var(--space-2) var(--space-3);
+  min-height: 40px;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+.view-switcher__btn:last-child { border-right: none; }
+.view-switcher__btn:hover { color: var(--text-primary); }
+.view-switcher__btn[aria-pressed="true"] {
+  background: var(--bg-surface-raised);
+  color: var(--accent-amber);
+}
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.date-nav .btn--ghost {
+  min-height: 40px;
+}
+#nav-hoy {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  padding: var(--space-2) var(--space-3);
+}
+
+/* ============================================================
+   Vista semana: gutter de horas + 7 columnas de día con scroll
+   horizontal (el timeline diario es el elemento firma; aquí se
+   reutiliza la misma lógica de bloques absolutos por columna).
+   ============================================================ */
+:root {
+  --week-row-height: 48px;
+  --week-col-width: 108px;
+  --week-header-height: 52px;
+}
+
+.week-view {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+.week-view__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.week-view__grid {
+  display: flex;
+  align-items: stretch;
+  width: max-content;
+  min-width: 100%;
+}
+
+.week-col {
+  flex: 0 0 auto;
+  width: var(--week-col-width);
+  border-right: 1px solid var(--border-subtle);
+}
+.week-col:last-child { border-right: none; }
+
+.week-col--gutter {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  width: var(--gutter-width);
+  background: var(--bg-gutter);
+}
+
+.week-col__header {
+  height: var(--week-header-height);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  font-family: var(--font-mono);
+}
+.week-col__header-dia {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.week-col__header-num {
+  font-size: var(--fs-md);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.week-col--hoy .week-col__header-num {
+  background: var(--accent-amber);
+  color: #1a1204;
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-2);
+}
+
+.week-col__hours {
+  position: relative;
+}
+.week-col__hour-row {
+  height: var(--week-row-height);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.week-col--gutter .week-col__hour-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 2px var(--space-2) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-faint);
+}
+
+.week-event {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--block-color, var(--accent-cyan));
+  background: color-mix(in srgb, var(--block-color, var(--accent-cyan)) 16%, var(--bg-surface));
+  padding: 2px var(--space-1);
+  font-size: 0.7rem;
+  line-height: 1.2;
+  overflow: hidden;
+  z-index: 1;
+}
+.week-event__title { font-weight: 600; display: block; }
+.week-event__meta {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  display: block;
+}
+.week-event--trabajo  { --block-color: var(--accent-cyan); }
+.week-event--personal { --block-color: var(--accent-violet); }
+.week-event--salud    { --block-color: var(--accent-success); }
+.week-event--estudio  { --block-color: var(--accent-amber); }
+
+.week-now-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1.5px solid var(--accent-amber);
+  z-index: 2;
+}
+
+/* ============================================================
+   Vista mes: cuadrícula de 6 semanas x 7 días
+   ============================================================ */
+.month-view__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-bottom: var(--space-2);
+  text-align: center;
+}
+
+.month-view__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: minmax(60px, auto);
+  gap: 1px;
+  background: var(--border-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.month-cell {
+  background: var(--bg-surface);
+  padding: var(--space-1) var(--space-1) var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  cursor: pointer;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  min-height: 60px;
+  transition: background var(--transition-fast);
+}
+.month-cell:hover { background: var(--bg-surface-raised); }
+
+.month-cell__num {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text-primary);
+  align-self: flex-start;
+}
+.month-cell--fuera-de-mes { background: var(--bg-gutter); }
+.month-cell--fuera-de-mes .month-cell__num { color: var(--text-faint); }
+
+.month-cell--hoy .month-cell__num {
+  background: var(--accent-amber);
+  color: #1a1204;
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-2);
+}
+
+.month-cell__dots {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+.month-cell__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dot-color, var(--accent-cyan));
+  flex-shrink: 0;
+}
+.month-cell__dot--trabajo  { --dot-color: var(--accent-cyan); }
+.month-cell__dot--personal { --dot-color: var(--accent-violet); }
+.month-cell__dot--salud    { --dot-color: var(--accent-success); }
+.month-cell__dot--estudio  { --dot-color: var(--accent-amber); }
+
+.month-cell__mas {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-faint);
+}
+
+/* En pantallas más anchas, celdas de mes un poco más altas para que quepan más puntos */
+@media (min-width: 640px) {
+  .month-view__grid { grid-auto-rows: minmax(80px, auto); }
+}
+
+/* --- Filtro por etiqueta (buscador/filtro) --- */
+.filter-bar {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-1);
+}
+.filter-bar .chip {
+  cursor: pointer;
+  background: var(--bg-surface);
+}
+.filter-bar .chip[aria-pressed="true"] {
+  border-color: var(--chip-color, var(--accent-cyan));
+  color: var(--text-primary);
+}

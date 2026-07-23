@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Notas — Agenda</title>
+
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#12141c">
+  <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Agenda">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/componentes.css">
+  <link rel="stylesheet" href="../css/notas.css">
+</head>
+<body>
+  <div class="app-shell">
+
+    <nav class="tabbar" aria-label="Navegación principal">
+      <span class="tabbar__brand">agenda</span>
+      <div class="tabbar__tabs" role="tablist">
+        <a href="../index.html" class="tab" role="tab">hoy.html</a>
+        <a href="agenda.html" class="tab" role="tab">agenda.html</a>
+        <a href="notas.html" class="tab" aria-current="page" role="tab">
+          notas.html <span class="dot-unsaved" title="Nota sin terminar"></span>
+        </a>
+        <a href="ajustes.html" class="tab" role="tab">ajustes.html</a>
+      </div>
+    </nav>
+
+    <main class="app-main">
+      <div class="container">
+
+        <header class="page-header">
+          <div>
+            <span class="page-header__eyebrow">Diario</span>
+            <h1>Notas</h1>
+          </div>
+          <div style="display:flex; gap: var(--space-2);">
+            <button class="btn btn--ghost btn--icon" type="button" title="Grabar nota de voz" aria-label="Grabar nota de voz">🎙</button>
+            <button class="btn btn--primary" type="button">+ Nota</button>
+          </div>
+        </header>
+
+        <div class="search-bar" role="search">
+          <span class="search-bar__prompt">›</span>
+          <input type="search" placeholder="Buscar en eventos y notas..." aria-label="Buscador global">
+        </div>
+
+        <div class="filter-bar" role="group" aria-label="Filtrar por etiqueta">
+          <button class="chip chip--trabajo" aria-pressed="false" type="button">trabajo</button>
+          <button class="chip chip--personal" aria-pressed="false" type="button">personal</button>
+          <button class="chip chip--salud" aria-pressed="false" type="button">salud</button>
+          <button class="chip chip--estudio" aria-pressed="false" type="button">estudio</button>
+        </div>
+
+        <article class="card note-entry">
+          <div class="note-entry__header">
+            <span class="note-entry__date">Hoy · 21:40</span>
+            <span class="chip chip--trabajo">trabajo</span>
+          </div>
+          <h3 class="note-entry__title">Retro del sprint</h3>
+          <p class="note-entry__body">
+            Salió mejor de lo esperado. El módulo de autenticación quedó listo,
+            aunque el flujo de recuperación de contraseña necesita otra pasada.
+            Mañana reviso los tests con el equipo.
+          </p>
+          <div class="note-entry__images">
+            <img src="https://placehold.co/96x96/1a1d28/5fd4d0?text=%F0%9F%96%BC" alt="Foto adjunta a la nota">
+            <img src="https://placehold.co/96x96/1a1d28/9d8cff?text=%F0%9F%96%BC" alt="Foto adjunta a la nota">
+          </div>
+          <div class="note-entry__footer">
+            <span class="note-entry__linked-event">Entrega módulo de autenticación</span>
+          </div>
+        </article>
+
+        <article class="card note-entry">
+          <div class="note-entry__header">
+            <span class="note-entry__date">Ayer · 22:14</span>
+            <span class="chip chip--personal">personal</span>
+          </div>
+          <h3 class="note-entry__title">Idea para el fin de semana</h3>
+          <div class="note-entry__audio">
+            <span>▶</span>
+            <span>Nota de voz · 0:42</span>
+          </div>
+        </article>
+
+        <article class="card note-entry">
+          <div class="note-entry__header">
+            <span class="note-entry__date">Lunes 20 jul</span>
+            <span class="chip chip--estudio">estudio</span>
+          </div>
+          <h3 class="note-entry__title">Apuntes del curso de bases de datos</h3>
+          <p class="note-entry__body">
+            Row Level Security me costó entenderlo al principio, pero quedó
+            claro con el ejemplo de políticas por usuario autenticado.
+          </p>
+        </article>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="../js/main.js"></script>
+  <script type="module" src="../js/components/grabadorAudio.js"></script>
+</body>
+</html>

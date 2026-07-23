@@ -1,0 +1,106 @@
+/* ============================================================
+   notas.css
+   Vista de Notas / Diario: entradas con texto, imágenes y audio,
+   vínculo opcional a un evento de la agenda.
+   ============================================================ */
+
+.note-entry {
+  margin-bottom: var(--space-4);
+}
+
+.note-entry__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.note-entry__date {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.note-entry__title {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--fs-md);
+  margin-bottom: var(--space-2);
+}
+
+/* El cuerpo del diario usa la sans, no la mono — se prioriza la legibilidad */
+.note-entry__body {
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.note-entry__images {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  margin-bottom: var(--space-3);
+}
+.note-entry__images img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.note-entry__audio {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--bg-gutter);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.note-entry__footer {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.note-entry__linked-event {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--accent-cyan);
+}
+.note-entry__linked-event::before { content: '↳ '; }
+
+/* --- Buscador global --- */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--bg-gutter);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.search-bar input {
+  background: transparent;
+  border: none;
+  flex: 1;
+  font-size: var(--fs-base);
+  min-height: 32px;
+}
+.search-bar input:focus { outline: none; }
+.search-bar__prompt {
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+}

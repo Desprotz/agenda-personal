@@ -1,0 +1,161 @@
+/* ============================================================
+   componentes.css
+   Piezas de UI reutilizables: botones, tarjetas, etiquetas,
+   inputs, modal base.
+   ============================================================ */
+
+/* --- Botones --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: filter var(--transition-fast), background var(--transition-fast);
+  min-height: 44px; /* área táctil mínima recomendada en iOS */
+}
+.btn:active { filter: brightness(0.9); }
+
+.btn--primary {
+  background: var(--accent-amber);
+  color: #1a1204;
+}
+.btn--primary:hover { filter: brightness(1.08); }
+
+.btn--ghost {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+.btn--ghost:hover { background: var(--bg-surface-raised); }
+
+.btn--icon {
+  padding: var(--space-2);
+  min-width: 44px;
+}
+
+/* --- Tarjetas --- */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.card + .card { margin-top: var(--space-3); }
+
+.card--interactive {
+  cursor: pointer;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+.card--interactive:hover {
+  border-color: var(--border-strong);
+}
+
+/* --- Etiquetas / categorías con color --- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.chip::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--chip-color, var(--accent-cyan));
+  flex-shrink: 0;
+}
+.chip--trabajo   { --chip-color: var(--accent-cyan); }
+.chip--personal  { --chip-color: var(--accent-violet); }
+.chip--salud     { --chip-color: var(--accent-success); }
+.chip--estudio   { --chip-color: var(--accent-amber); }
+
+/* --- Estado de tarea (checklist "hecho hoy") --- */
+.task-check {
+  width: 20px; height: 20px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-strong);
+  background: transparent;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.task-check[data-done="true"] {
+  background: var(--accent-success);
+  border-color: var(--accent-success);
+  color: var(--bg-base);
+}
+
+/* --- Inputs --- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+}
+.field label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.field input,
+.field textarea,
+.field select {
+  background: var(--bg-gutter);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  font-size: var(--fs-base);
+  min-height: 44px;
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  border-color: var(--accent-cyan);
+}
+.field textarea { min-height: 96px; resize: vertical; }
+
+/* --- Estado vacío (voz de "consola") --- */
+.empty-state {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  padding: var(--space-5) var(--space-4);
+  text-align: left;
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+.empty-state::before {
+  content: '> ';
+  color: var(--accent-cyan);
+}
+
+/* --- Botón grabar nota de voz --- */
+.btn--record {
+  background: var(--bg-surface);
+  border: 1px solid var(--accent-alert);
+  color: var(--accent-alert);
+}
+.btn--record[data-recording="true"] {
+  background: var(--accent-alert);
+  color: var(--bg-base);
+}

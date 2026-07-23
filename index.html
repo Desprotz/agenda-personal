@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Hoy — Agenda</title>
+  <meta name="description" content="Resumen del día: horario, tareas y últimas notas.">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#12141c">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Agenda">
+
+  <!-- Tipografía -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/componentes.css">
+  <link rel="stylesheet" href="css/hoy.css">
+</head>
+<body>
+  <div class="app-shell">
+
+    <nav class="tabbar" aria-label="Navegación principal">
+      <span class="tabbar__brand">agenda</span>
+      <div class="tabbar__tabs" role="tablist">
+        <a href="index.html" class="tab" aria-current="page" role="tab">hoy.html</a>
+        <a href="pages/agenda.html" class="tab" role="tab">agenda.html</a>
+        <a href="pages/notas.html" class="tab" role="tab">
+          notas.html <span class="dot-unsaved" title="Nota sin terminar"></span>
+        </a>
+        <a href="pages/ajustes.html" class="tab" role="tab">ajustes.html</a>
+      </div>
+    </nav>
+
+    <!-- Widget "próxima alarma": visible siempre, sin abrir el calendario -->
+    <div class="next-alarm-strip">
+      <span class="next-alarm-strip__dot" aria-hidden="true"></span>
+      <span>próxima alarma → <strong id="proxima-alarma-texto">17:30 · Reunión de equipo</strong></span>
+    </div>
+
+    <main class="app-main">
+      <div class="container">
+
+        <header class="page-header">
+          <div>
+            <span class="page-header__eyebrow" id="fecha-hoy">Martes 22 de julio</span>
+            <h1>Hoy</h1>
+          </div>
+          <button class="btn btn--primary" type="button">+ Actividad</button>
+        </header>
+
+        <section class="section-block" aria-labelledby="titulo-horario">
+          <h2 id="titulo-horario" class="section-block__title">
+            Horario de hoy
+            <span class="streak-badge">racha: 5 días</span>
+          </h2>
+
+          <div class="hoy-item">
+            <span class="hoy-item__time">07:00</span>
+            <div class="hoy-item__body">
+              <div class="hoy-item__meta">
+                <button class="task-check" data-done="true" aria-label="Marcar como hecho" title="Hecho hoy">✓</button>
+                <span class="hoy-item__title" style="text-decoration: line-through; color: var(--text-muted);">Gimnasio</span>
+              </div>
+              <div class="hoy-item__meta">
+                <span class="chip chip--salud">salud</span>
+                <span class="text-meta">diaria</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hoy-item">
+            <span class="hoy-item__time">10:00</span>
+            <div class="hoy-item__body">
+              <div class="hoy-item__title">Entrega módulo de autenticación</div>
+              <div class="hoy-item__meta">
+                <span class="chip chip--trabajo">trabajo</span>
+                <span class="text-meta">rango · día 4 de 6</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hoy-item">
+            <span class="hoy-item__time">17:30</span>
+            <div class="hoy-item__body">
+              <div class="hoy-item__title">Reunión de equipo</div>
+              <div class="hoy-item__meta">
+                <span class="chip chip--trabajo">trabajo</span>
+                <span class="text-meta">puntual · alarma 15 min antes</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hoy-item">
+            <span class="hoy-item__time">21:00</span>
+            <div class="hoy-item__body">
+              <div class="hoy-item__meta">
+                <button class="task-check" data-done="false" aria-label="Marcar como hecho" title="Marcar hecho"></button>
+                <span class="hoy-item__title">Leer 20 páginas</span>
+              </div>
+              <div class="hoy-item__meta">
+                <span class="chip chip--personal">personal</span>
+                <span class="text-meta">días específicos · L·M·V</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section-block" aria-labelledby="titulo-notas">
+          <h2 id="titulo-notas" class="section-block__title">Últimas notas</h2>
+
+          <div class="card card--interactive note-preview-card">
+            <div class="note-preview-card__thumb">🖼</div>
+            <div class="note-preview-card__body">
+              <div class="hoy-item__title">Retro del sprint</div>
+              <p class="note-preview-card__excerpt">Salió mejor de lo esperado, aunque el módulo de pagos sigue...</p>
+              <div class="hoy-item__meta">
+                <span class="chip chip--trabajo">trabajo</span>
+                <span class="text-meta">vinculada a "Entrega módulo de autenticación"</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card--interactive note-preview-card">
+            <div class="note-preview-card__thumb">🎙</div>
+            <div class="note-preview-card__body">
+              <div class="hoy-item__title">Idea para el fin de semana</div>
+              <p class="note-preview-card__excerpt">Nota de voz · 0:42</p>
+              <div class="hoy-item__meta">
+                <span class="chip chip--personal">personal</span>
+                <span class="text-meta">ayer, 22:14</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

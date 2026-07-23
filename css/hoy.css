@@ -1,0 +1,80 @@
+/* ============================================================
+   hoy.css
+   Vista "Hoy": pantalla de inicio con resumen del día + últimas notas.
+   ============================================================ */
+
+.hoy-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.hoy-item:last-child { border-bottom: none; }
+
+.hoy-item__time {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--accent-amber);
+  width: 56px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.hoy-item__body { flex: 1; min-width: 0; }
+.hoy-item__title {
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+.hoy-item__meta {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.hoy-item--done .hoy-item__title {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--border-strong);
+}
+
+.section-block { margin-bottom: var(--space-6); }
+
+.section-block__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.streak-badge {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--accent-success);
+}
+.streak-badge::before { content: '🔥 '; }
+
+.note-preview-card {
+  display: flex;
+  gap: var(--space-3);
+}
+.note-preview-card__thumb {
+  width: 48px; height: 48px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-gutter);
+  border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  font-size: var(--fs-sm);
+}
+.note-preview-card__body { min-width: 0; }
+.note-preview-card__excerpt {
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

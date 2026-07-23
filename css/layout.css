@@ -1,0 +1,152 @@
+/* ============================================================
+   layout.css
+   Estructura general: barra de navegación tipo "tabs de archivo
+   abierto" + shell de página. Mobile-first (iPhone es el target
+   principal, ver PROYECTO.md sección 1).
+   ============================================================ */
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* --- Barra superior: tabs de archivo abierto --- */
+.tabbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: stretch;
+  height: var(--nav-height);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 var(--space-2);
+  /* Respeta el notch/isla dinámica del iPhone */
+  padding-top: env(safe-area-inset-top);
+  height: calc(var(--nav-height) + env(safe-area-inset-top));
+}
+
+.tabbar__brand {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.tabbar__brand::before {
+  content: '~/';
+  color: var(--accent-amber);
+  margin-right: 2px;
+}
+
+.tabbar__tabs {
+  display: flex;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabbar__tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+  border-right: 1px solid var(--border-subtle);
+  white-space: nowrap;
+  position: relative;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface-raised);
+  text-decoration: none;
+}
+
+.tab[aria-current="page"] {
+  color: var(--text-primary);
+  background: var(--bg-base);
+}
+.tab[aria-current="page"]::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px;
+  background: var(--accent-amber);
+}
+
+.tab .dot-unsaved {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  flex-shrink: 0;
+}
+
+/* --- Contenido principal --- */
+.app-main {
+  flex: 1;
+  padding-bottom: calc(var(--space-7) + env(safe-area-inset-bottom));
+}
+
+/* --- Encabezado de sección de página --- */
+.page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.page-header__eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-1);
+  display: block;
+}
+
+/* --- Franja "próxima alarma" (widget flotante en la barra superior) --- */
+.next-alarm-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--bg-gutter);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.next-alarm-strip__dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent-alert);
+  box-shadow: 0 0 0 0 rgba(242, 114, 107, 0.6);
+  animation: pulse-alarm 2s infinite;
+  flex-shrink: 0;
+}
+.next-alarm-strip strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+@keyframes pulse-alarm {
+  0%   { box-shadow: 0 0 0 0 rgba(242, 114, 107, 0.5); }
+  70%  { box-shadow: 0 0 0 6px rgba(242, 114, 107, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(242, 114, 107, 0); }
+}
+
+/* Breakpoint: cuando hay más espacio (tablet/desktop), un poco más de aire */
+@media (min-width: 640px) {
+  .container { padding: var(--space-6); }
+}

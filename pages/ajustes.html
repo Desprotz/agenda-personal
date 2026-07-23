@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Ajustes — Agenda</title>
+
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#12141c">
+  <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Agenda">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/componentes.css">
+</head>
+<body>
+  <div class="app-shell">
+
+    <nav class="tabbar" aria-label="Navegación principal">
+      <span class="tabbar__brand">agenda</span>
+      <div class="tabbar__tabs" role="tablist">
+        <a href="../index.html" class="tab" role="tab">hoy.html</a>
+        <a href="agenda.html" class="tab" role="tab">agenda.html</a>
+        <a href="notas.html" class="tab" role="tab">
+          notas.html <span class="dot-unsaved" title="Nota sin terminar"></span>
+        </a>
+        <a href="ajustes.html" class="tab" aria-current="page" role="tab">ajustes.html</a>
+      </div>
+    </nav>
+
+    <main class="app-main">
+      <div class="container">
+
+        <header class="page-header">
+          <div>
+            <span class="page-header__eyebrow">Configuración</span>
+            <h1>Ajustes</h1>
+          </div>
+        </header>
+
+        <section class="section-block">
+          <h2>Notificaciones</h2>
+          <div class="card">
+            <p class="text-meta" style="margin-bottom: var(--space-3);">
+              En iPhone, las notificaciones solo funcionan si esta agenda está
+              instalada en la pantalla de inicio (Compartir → Agregar a inicio).
+            </p>
+            <button class="btn btn--primary" type="button" id="btn-activar-notificaciones">
+              Activar notificaciones
+            </button>
+          </div>
+        </section>
+
+        <section class="section-block">
+          <h2>Cuenta</h2>
+          <div class="card" id="estado-cuenta">
+            <p class="text-meta">Conectando con Turso…</p>
+          </div>
+        </section>
+
+        <section class="section-block">
+          <h2>Datos</h2>
+          <div class="card" style="display:flex; flex-direction:column; gap: var(--space-3);">
+            <div>
+              <p class="text-meta" style="margin-bottom: var(--space-2);">
+                Exporta todos tus eventos y notas en un archivo JSON de respaldo.
+              </p>
+              <button class="btn btn--ghost" type="button" id="btn-exportar">Exportar backup (.json)</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="../js/main.js"></script>
+  <script type="module" src="../js/components/estadoConexion.js"></script>
+</body>
+</html>

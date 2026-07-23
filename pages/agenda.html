@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Agenda</title>
+
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#12141c">
+  <link rel="apple-touch-icon" href="../assets/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Agenda">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/componentes.css">
+  <link rel="stylesheet" href="../css/agenda.css">
+</head>
+<body>
+  <div class="app-shell">
+
+    <nav class="tabbar" aria-label="Navegación principal">
+      <span class="tabbar__brand">agenda</span>
+      <div class="tabbar__tabs" role="tablist">
+        <a href="../index.html" class="tab" role="tab">hoy.html</a>
+        <a href="agenda.html" class="tab" aria-current="page" role="tab">agenda.html</a>
+        <a href="notas.html" class="tab" role="tab">
+          notas.html <span class="dot-unsaved" title="Nota sin terminar"></span>
+        </a>
+        <a href="ajustes.html" class="tab" role="tab">ajustes.html</a>
+      </div>
+    </nav>
+
+    <div class="next-alarm-strip">
+      <span class="next-alarm-strip__dot" aria-hidden="true"></span>
+      <span>próxima alarma → <strong>17:30 · Reunión de equipo</strong></span>
+    </div>
+
+    <main class="app-main">
+      <div class="container">
+
+        <header class="page-header">
+          <div>
+            <span class="page-header__eyebrow" id="agenda-rango-fecha">Martes 22 de julio</span>
+            <h1>Agenda</h1>
+          </div>
+          <button class="btn btn--primary" type="button">+ Actividad</button>
+        </header>
+
+        <div class="agenda-toolbar">
+          <div class="view-switcher" role="tablist" aria-label="Vista de agenda">
+            <button class="view-switcher__btn" data-vista="dia" aria-pressed="true" type="button" role="tab">día</button>
+            <button class="view-switcher__btn" data-vista="semana" aria-pressed="false" type="button" role="tab">semana</button>
+            <button class="view-switcher__btn" data-vista="mes" aria-pressed="false" type="button" role="tab">mes</button>
+          </div>
+          <div class="date-nav">
+            <button class="btn btn--ghost btn--icon" id="nav-anterior" type="button" aria-label="Período anterior">‹</button>
+            <button class="btn btn--ghost" id="nav-hoy" type="button">hoy</button>
+            <button class="btn btn--ghost btn--icon" id="nav-siguiente" type="button" aria-label="Período siguiente">›</button>
+          </div>
+        </div>
+
+        <div class="filter-bar" role="group" aria-label="Filtrar por etiqueta">
+          <button class="chip chip--trabajo" aria-pressed="false" type="button" data-categoria="trabajo">trabajo</button>
+          <button class="chip chip--personal" aria-pressed="false" type="button" data-categoria="personal">personal</button>
+          <button class="chip chip--salud" aria-pressed="false" type="button" data-categoria="salud">salud</button>
+          <button class="chip chip--estudio" aria-pressed="false" type="button" data-categoria="estudio">estudio</button>
+        </div>
+
+        <!-- Vista día: timeline de horas -->
+        <div class="timeline" id="vista-dia" data-vista-panel="dia">
+          <div class="timeline__gutter" id="timeline-gutter">
+            <!-- Generado por JS: 06:00 a 23:00 -->
+          </div>
+          <div class="timeline__hours" id="timeline-hours">
+            <!-- Generado por JS: filas de hora + bloques de evento + línea "ahora" -->
+          </div>
+        </div>
+
+        <!-- Vista semana: 7 columnas de horario, scroll horizontal en móvil -->
+        <div class="week-view" id="vista-semana" data-vista-panel="semana" hidden>
+          <div class="week-view__scroll">
+            <div class="week-view__grid" id="week-grid">
+              <!-- Generado por JS: columna de horas + 7 columnas de día -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Vista mes: cuadrícula de 6 semanas -->
+        <div class="month-view" id="vista-mes" data-vista-panel="mes" hidden>
+          <div class="month-view__weekdays" id="month-weekdays">
+            <!-- Generado por JS: lun...dom -->
+          </div>
+          <div class="month-view__grid" id="month-grid">
+            <!-- Generado por JS: celdas de día -->
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="../js/main.js"></script>
+  <script type="module" src="../js/components/calendario.js"></script>
+</body>
+</html>
