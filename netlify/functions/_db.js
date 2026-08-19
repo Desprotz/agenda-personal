@@ -35,11 +35,10 @@ export function getDb() {
   return cliente;
 }
 
-/** Respuesta JSON estándar para todas las funciones. */
+/** Respuesta JSON estándar para todas las funciones (formato Netlify Functions v2). */
 export function json(status, body) {
-  return {
-    statusCode: status,
+  return new Response(JSON.stringify(body), {
+    status,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  };
+  });
 }
