@@ -624,6 +624,35 @@ Dado que el uso principal es desde iPhone, esto cambia el diseño técnico:
     `componentes.css` / `agenda.css` / `hoy.css`. Pendiente de verificación
     manual en producción (abrir `agenda.html` e `index.html` tras el deploy)
     porque este entorno no puede levantar Netlify Dev/Turso.
+- **2026-08-19** — **Fix post-cierre de Fase 3: `[hidden]` no ocultaba nada.**
+  Al probar en producción, dos síntomas aparentemente distintos resultaron
+  ser el mismo bug:
+  1. En `agenda.html`, la vista "día" (`.timeline`) se quedaba visible
+     encima de "semana"/"mes" al cambiar de pestaña.
+  2. En el modal de evento, "cancelar" y la "×" no cerraban nada
+     visualmente (aunque "eliminar" sí borraba en la base de datos, y
+     "guardar" parecía necesitar un segundo tap para "funcionar").
+  **Causa raíz:** varios componentes (`.timeline`, `.modal-backdrop`,
+  `.field-row`, `.nueva-etiqueta-form`) declaran su propio `display`
+  (`grid`/`flex`) en `agenda.css`/`componentes.css`. Esa regla de autor tiene
+  la misma especificidad que el `[hidden] { display: none }` que trae el
+  navegador por defecto, pero al cargarse después en la cascada, **siempre
+  ganaba** — así que poner `elemento.hidden = true` desde JS (`cambiarVista()`
+  en `calendario.js`, `cerrar()` en `modalEvento.js`) dejaba de tener efecto
+  visual, aunque la lógica de JS sí se ejecutaba (por eso "eliminar" sí
+  borraba de verdad, y "guardar" sí guardaba en el primer tap — solo que no
+  se notaba porque el modal no desaparecía).
+  **Fix:** una sola regla global en `css/base.css` (sección de reset):
+  `[hidden] { display: none !important; }`. Con `!important` se garantiza que
+  gane siempre, sin tener que tocar cada componente individualmente. Corrige
+  de una vez: el cambio de vista día/semana/mes, el cierre del modal
+  (cancelar/×/guardar/eliminar), los campos condicionales según tipo de
+  evento (`data-tipo-visible`), y el formulario inline de nueva etiqueta.
+  **Aplica a futuro:** cualquier componente nuevo que se oculte con el
+  atributo `hidden` de HTML no necesita preocuparse por esto — pero si algún
+  componente necesita mostrarse con un `display` distinto de `none` de forma
+  condicional por *otro* motivo (no `hidden`), no debe depender de quitar el
+  atributo `hidden` para eso; debe usar su propia clase/estado.
 
 ---
 

@@ -75,6 +75,23 @@
   box-sizing: border-box;
 }
 
+/*
+ * Bug encontrado en Fase 3 (ver PROYECTO.md, bitácora): varios componentes
+ * (.timeline, .modal-backdrop, .field-row, .nueva-etiqueta-form) declaran su
+ * propio `display` (grid/flex). Como esa regla de autor tiene la misma
+ * especificidad que el `[hidden] { display: none }` del navegador pero se
+ * carga después, GANABA siempre — el atributo `hidden` dejaba de ocultar
+ * esos elementos aunque JS lo pusiera en `true` (calendario.js -> cambiarVista,
+ * modalEvento.js -> cerrar()/actualizarCamposVisibles()). Efecto visible: la
+ * vista "día" se quedaba encima de "semana"/"mes", y el modal de evento no se
+ * cerraba con cancelar/X (aunque sí guardaba o eliminaba "por debajo").
+ * Esta regla, con !important, asegura que `hidden` siempre gane sin importar
+ * qué `display` declare el componente.
+ */
+[hidden] {
+  display: none !important;
+}
+
 html {
   color-scheme: dark;
   -webkit-text-size-adjust: 100%;
