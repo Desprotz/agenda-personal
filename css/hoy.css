@@ -71,6 +71,9 @@
   font-size: var(--fs-sm);
 }
 .note-preview-card__body { min-width: 0; }
+/* La tarjeta ahora es un <a> (Fase 4, ver notasHoy.js) — sin esto el título
+   heredaría el color cian de los links en vez del texto normal. */
+.note-preview-card .hoy-item__title { color: var(--text-primary); }
 .note-preview-card__excerpt {
   color: var(--text-muted);
   font-size: var(--fs-sm);

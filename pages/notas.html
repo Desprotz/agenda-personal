@@ -46,65 +46,22 @@
           </div>
           <div style="display:flex; gap: var(--space-2);">
             <button class="btn btn--ghost btn--icon" type="button" title="Grabar nota de voz" aria-label="Grabar nota de voz">🎙</button>
-            <button class="btn btn--primary" type="button">+ Nota</button>
+            <button class="btn btn--primary" type="button" id="btn-nueva-nota">+ Nota</button>
           </div>
         </header>
 
         <div class="search-bar" role="search">
           <span class="search-bar__prompt">›</span>
-          <input type="search" placeholder="Buscar en eventos y notas..." aria-label="Buscador global">
+          <input type="search" placeholder="Buscar en tus notas..." aria-label="Buscador de notas">
         </div>
 
-        <div class="filter-bar" role="group" aria-label="Filtrar por etiqueta">
-          <button class="chip chip--trabajo" aria-pressed="false" type="button">trabajo</button>
-          <button class="chip chip--personal" aria-pressed="false" type="button">personal</button>
-          <button class="chip chip--salud" aria-pressed="false" type="button">salud</button>
-          <button class="chip chip--estudio" aria-pressed="false" type="button">estudio</button>
+        <div class="filter-bar" role="group" aria-label="Filtrar por etiqueta" id="filtro-etiquetas-notas">
+          <!-- Generado por JS: un chip por etiqueta real (js/components/notas.js) -->
         </div>
 
-        <article class="card note-entry">
-          <div class="note-entry__header">
-            <span class="note-entry__date">Hoy · 21:40</span>
-            <span class="chip chip--trabajo">trabajo</span>
-          </div>
-          <h3 class="note-entry__title">Retro del sprint</h3>
-          <p class="note-entry__body">
-            Salió mejor de lo esperado. El módulo de autenticación quedó listo,
-            aunque el flujo de recuperación de contraseña necesita otra pasada.
-            Mañana reviso los tests con el equipo.
-          </p>
-          <div class="note-entry__images">
-            <img src="https://placehold.co/96x96/1a1d28/5fd4d0?text=%F0%9F%96%BC" alt="Foto adjunta a la nota">
-            <img src="https://placehold.co/96x96/1a1d28/9d8cff?text=%F0%9F%96%BC" alt="Foto adjunta a la nota">
-          </div>
-          <div class="note-entry__footer">
-            <span class="note-entry__linked-event">Entrega módulo de autenticación</span>
-          </div>
-        </article>
-
-        <article class="card note-entry">
-          <div class="note-entry__header">
-            <span class="note-entry__date">Ayer · 22:14</span>
-            <span class="chip chip--personal">personal</span>
-          </div>
-          <h3 class="note-entry__title">Idea para el fin de semana</h3>
-          <div class="note-entry__audio">
-            <span>▶</span>
-            <span>Nota de voz · 0:42</span>
-          </div>
-        </article>
-
-        <article class="card note-entry">
-          <div class="note-entry__header">
-            <span class="note-entry__date">Lunes 20 jul</span>
-            <span class="chip chip--estudio">estudio</span>
-          </div>
-          <h3 class="note-entry__title">Apuntes del curso de bases de datos</h3>
-          <p class="note-entry__body">
-            Row Level Security me costó entenderlo al principio, pero quedó
-            claro con el ejemplo de políticas por usuario autenticado.
-          </p>
-        </article>
+        <div id="lista-notas">
+          <!-- Generado por JS: notas reales (js/components/notas.js) -->
+        </div>
 
       </div>
     </main>
@@ -112,5 +69,6 @@
 
   <script type="module" src="../js/main.js"></script>
   <script type="module" src="../js/components/grabadorAudio.js"></script>
+  <script type="module" src="../js/components/notas.js"></script>
 </body>
 </html>

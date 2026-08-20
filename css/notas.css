@@ -63,6 +63,17 @@
   color: var(--text-muted);
   margin-bottom: var(--space-3);
 }
+.note-entry__audio audio {
+  width: 100%;
+  height: 32px;
+}
+
+.note-entry__eliminar {
+  margin-left: auto;
+}
+
+/* --- Filtro por etiqueta dinámico + búsqueda (notas.html, Fase 4) --- */
+.filter-bar:empty { display: none; }
 
 .note-entry__footer {
   display: flex;

@@ -3,7 +3,7 @@
 > Este archivo es la fuente de verdad del proyecto. Se actualiza con cada avance,
 > decisión técnica y cambio de rumbo. Antes de tocar código, revisar este documento.
 
-Última actualización: 2026-08-19 (v6 — Fase 3 cerrada: CRUD de eventos/etiquetas, checklist "hecho hoy" y racha, conectados de punta a punta)
+Última actualización: 2026-08-20 (v7 — Fase 4 cerrada: notas + imágenes + audio + vínculo a evento, con Netlify Blobs)
 
 ---
 
@@ -262,8 +262,15 @@ Dado que el uso principal es desde iPhone, esto cambia el diseño técnico:
       vistas Agenda (día/semana/mes) y Hoy ya corren contra datos reales de
       Turso. Ver bitácora para el detalle completo, incluyendo un bug de
       servicios sin implementar que se encontró y corrigió en el camino.
-- [ ] **Fase 4** — CRUD de notas + subida de imágenes + vínculo nota-evento
+- [x] **Fase 4** — CRUD de notas + subida de imágenes + vínculo nota-evento
       + **notas de voz** (grabación corta, Web Audio API + Storage).
+      **Completada 2026-08-20**: `netlify/functions/notas.js` y `media.js`,
+      los servicios `notasService.js`/`storageService.js`, el modal
+      `modalNota.js` (texto, imágenes, audio, etiqueta, vínculo a evento), la
+      grabación real de audio en `grabadorAudio.js` (MediaRecorder), la vista
+      Notas (`js/components/notas.js`) y "Últimas notas" en Hoy
+      (`notasHoy.js`) ya corren contra datos reales, con archivos en Netlify
+      Blobs. Ver bitácora para el detalle y las decisiones tomadas.
 - [ ] **Fase 5** — Sistema de notificaciones/alarmas + Service Worker
       + **vista de "próxima alarma"** en la barra superior
       + **recordatorio de diario** si no se ha escrito nota en el día.
@@ -653,6 +660,113 @@ Dado que el uso principal es desde iPhone, esto cambia el diseño técnico:
   componente necesita mostrarse con un `display` distinto de `none` de forma
   condicional por *otro* motivo (no `hidden`), no debe depender de quitar el
   atributo `hidden` para eso; debe usar su propia clase/estado.
+- **2026-08-20** — **Fase 4 cerrada: notas + imágenes + audio + vínculo a
+  evento, con Netlify Blobs.**
+  - **Backend (`netlify/functions/`):**
+    - `media.js` (nuevo) — sube (`POST`), sirve (`GET /:key`) y borra
+      (`DELETE /:key`) archivos con `getStore('notas-media')` de
+      `@netlify/blobs`. Recibe el archivo como base64 dentro del JSON (no
+      `multipart/form-data`, para no complicar el parseo en una Netlify
+      Function v2) y responde con `{ key, url }`. Valida `contentType` contra
+      una lista blanca (imágenes: jpeg/png/webp/gif/heic; audio:
+      webm/ogg/mp4/mpeg/wav) y limita a 6 MB decodificados.
+    - `notas.js` (nuevo) — CRUD completo de `notas`, con `notas_imagenes` y
+      `notas_audio` anidados en la respuesta (`nota.imagenes`, `nota.audio`).
+      Soporta filtros combinables por querystring: `fecha`, `evento_id`,
+      `etiqueta_id`, `q` (búsqueda `LIKE` en título/contenido). En `PUT`, si
+      el body trae la llave `imagenes` o `audio` (aunque sea `[]`), se
+      reemplaza el set completo — y se borran del storage las keys que ya no
+      queden referenciadas. En `DELETE`, se borran primero los blobs
+      (best-effort: si falla borrar uno, se sigue con el resto) y luego la
+      fila de `notas` (cascada limpia `notas_imagenes`/`notas_audio` en la
+      BD).
+  - **Frontend — servicios (`js/services/`):**
+    - `storageService.js` — `subirImagen`/`subirAudio` (leen el
+      File/Blob como base64 con `FileReader`, llaman a `/media`),
+      `obtenerUrlPublica` (`/api/media/{key}`), `eliminarArchivo`.
+    - `notasService.js` — `listarNotas(filtros)`, `listarUltimasNotas(n)`
+      (para la vista Hoy), `crearNota`, `actualizarNota`, `eliminarNota`.
+  - **Frontend — UI (`js/components/`):**
+    - `modalNota.js` (nuevo) — modal singleton, mismo patrón que
+      `modalEvento.js`. Campos: título (opcional), contenido, fecha,
+      etiqueta (con creación inline, reutiliza `validarEtiqueta`), vínculo a
+      evento (select con todos los eventos), imágenes (input múltiple con
+      preview y botón de quitar por imagen) y audio (un adjunto a la vez, con
+      preview/duración/quitar). Las imágenes/audio nuevas no se suben al
+      elegirlas — se guardan como `File`/`Blob` en memoria y se suben recién
+      al dar "guardar" (`subirAdjuntosPendientes`), así que cancelar no deja
+      archivos huérfanos en el storage.
+    - `grabadorAudio.js` (reescrito) — antes solo cambiaba el estado visual
+      del botón 🎙; ahora graba de verdad con `MediaRecorder`
+      (`navigator.mediaDevices.getUserMedia({audio:true})`). Al soltar/parar,
+      abre `modalNota.js` en modo "crear" con el audio ya adjunto
+      (`abrirParaCrearNotaConAudio`), para que el título/etiqueta/vínculo se
+      completen ahí antes de guardar.
+    - `notas.js` (nuevo) — vista Notas completa: lista real desde la API,
+      buscador con debounce de 300ms, filtro por etiqueta (chips dinámicos,
+      mismo patrón que el filtro de `calendario.js`), eliminar (botón 🗑 por
+      tarjeta, con confirmación), clic en la tarjeta para editar (excepto
+      sobre el reproductor de audio o el botón de eliminar).
+    - `notasHoy.js` (nuevo) — reemplaza la maqueta estática de "Últimas
+      notas" en `index.html` con las 3 notas más recientes reales. Cada
+      tarjeta es un link a `pages/notas.html` (el modal de edición vive ahí;
+      Hoy es solo un vistazo rápido, igual que antes con el mockup).
+  - **HTML/CSS:** `index.html` y `pages/notas.html` reescritos para usar los
+    componentes reales en vez de las tarjetas de ejemplo de la Fase 1. CSS
+    nuevo en `componentes.css` (preview de imágenes del modal) y
+    `notas.css`/`hoy.css` (reproductor de audio, ajuste de color del título
+    en las tarjetas de "Últimas notas" — ver bug corregido abajo).
+  - **Decisiones tomadas durante la implementación:**
+    - Aunque el esquema (`notas_audio`) permite varios audios por nota, la UI
+      solo maneja **uno a la vez** — grabar uno nuevo reemplaza al anterior.
+      Si más adelante se quiere permitir varios, el backend ya lo soporta
+      (`reemplazarAdjuntos` recibe un arreglo); solo habría que cambiar
+      `modalNota.js`.
+    - Las keys de Netlify Blobs se generan **sin `/`** (`img_{uuid}.ext`,
+      `aud_{uuid}.ext}`) a propósito, para que el parámetro de ruta
+      `:id`/`:key` de Netlify Functions v2 las capture completas sin
+      necesitar un splat.
+    - El upload va como **base64 dentro de JSON**, no `multipart/form-data` —
+      más simple de validar/parsear en una Netlify Function v2, a costa de
+      ~33% más peso en la subida. Con el límite de 6 MB decodificados es
+      aceptable para fotos de un diario personal; si en el futuro se quieren
+      adjuntar archivos más pesados, ahí sí valdría la pena migrar a
+      `multipart/form-data` o subida directa a Blobs con URL firmada.
+    - Al eliminar una nota o reemplazar sus adjuntos, borrar los blobs es
+      **best-effort**: si Netlify Blobs falla al borrar uno, se registra en
+      log y se sigue con el resto — se prefiere no dejar una nota "atascada"
+      en la BD por un blob que no se pudo borrar, aunque eso puede dejar
+      blobs huérfanos ocasionales (aceptable para el tamaño de este
+      proyecto; no hay un job de limpieza).
+  - **Bug encontrado y corregido en el camino:** al convertir las tarjetas
+    de "Últimas notas" en `<a>` (para que lleven a `notas.html`), heredaban
+    el color cian de los links (`a { color: var(--accent-cyan) }` en
+    `base.css`) en vez del color de texto normal — se corrigió con una regla
+    específica en `hoy.css`. Mismo tipo de descuido que el bug de `[hidden]`
+    de la entrada anterior: un estilo global genérico chocando con un
+    componente más específico: al añadir un elemento nuevo dentro de un
+    contenedor con estilos globales (como `a`, `button`, `input`), vale la
+    pena revisar visualmente el resultado, no asumir que la clase del
+    componente es suficiente.
+  - **Pendiente / limitaciones conocidas:**
+    - No se probó en un entorno real con Netlify Dev + Turso + Blobs (este
+      entorno no puede levantarlo) — la verificación fue estática:
+      `node --check` en todos los archivos, cruce de cada llamada de
+      servicio usada en los componentes contra lo que cada servicio
+      exporta, y verificación de que las clases CSS usadas existen.
+      **Recomendado probar en el iPhone real, en particular la grabación de
+      audio** (`getUserMedia`/`MediaRecorder`), ya que iOS Safari es más
+      estricto con permisos de micrófono que otros navegadores.
+    - El punto (`.dot-unsaved`, "Nota sin terminar") junto a la pestaña
+      "notas.html" en la barra de navegación sigue siendo un elemento
+      cosmético estático — no refleja un borrador real en curso. No se tocó
+      en esta fase; si se quiere que sea real, habría que decidir qué cuenta
+      como "nota sin terminar" (¿un adjunto grabado pero no guardado?).
+    - La búsqueda (`q`) usa `LIKE` simple sobre `titulo`/`contenido` — no hay
+      normalización de acentos/mayúsculas más allá de lo que SQLite haga por
+      default, así que "cafe" no encuentra "café". Suficiente para esta
+      fase; si se vuelve un problema, revisar en la Fase 6 (buscador
+      global).
 
 ---
 
