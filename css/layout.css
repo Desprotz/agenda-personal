@@ -172,3 +172,22 @@
 @media (min-width: 640px) {
   .container { padding: var(--space-6); }
 }
+
+/* ============================================================
+   Ancho del contenido en pantallas grandes (Fase 7)
+   `.container` a secas se queda en --max-content-width (720px) en
+   toda la app — es lo correcto para Hoy/Notas/Ajustes, contenido
+   de lectura tipo diario, donde una columna angosta se lee mejor.
+   `.container--agenda` (solo en pages/agenda.html) crece en tablet
+   y desktop: la vista semana/mes tiene más celdas que mostrar y se
+   ve apretada si se queda en 720px cuando sobra espacio horizontal.
+   ============================================================ */
+.container--agenda {
+  max-width: var(--max-content-width);
+}
+@media (min-width: 768px) {
+  .container--agenda { max-width: 960px; }
+}
+@media (min-width: 1024px) {
+  .container--agenda { max-width: 1200px; }
+}

@@ -3,7 +3,7 @@
 > Este archivo es la fuente de verdad del proyecto. Se actualiza con cada avance,
 > decisión técnica y cambio de rumbo. Antes de tocar código, revisar este documento.
 
-Última actualización: 2026-08-20 (v9 — Fase 6 cerrada: buscador global de eventos + notas, exportar/backup en JSON)
+Última actualización: 2026-08-20 (v10 — Fase 7 en progreso: primer paso, breakpoints reales de tablet/desktop en la vista Agenda)
 
 ---
 
@@ -283,7 +283,11 @@ Dado que el uso principal es desde iPhone, esto cambia el diseño técnico:
       modalEvento/modalNota) + botón "Exportar backup (.json)" de
       `ajustes.html` (ya existía como UI, ahora conectado). Ver bitácora
       para el detalle completo.
-- [ ] **Fase 7** — Pulido visual, responsive, despliegue final en Netlify.
+- [~] **Fase 7** — Pulido visual, responsive, despliegue final en Netlify.
+      **En progreso.** Primer paso completado 2026-08-20: breakpoints reales
+      de tablet/desktop (antes solo existía un breakpoint en 640px). Ver
+      bitácora para el detalle. Falta: auditoría visual completa contra el
+      design system (sección 9) y checklist de despliegue final.
 
 ---
 
@@ -1090,3 +1094,51 @@ de código real y no un calendario genérico con tema oscuro.
     standalone maneja `<a download>` distinto a una pestaña normal en
     algunas versiones de iOS; si falla, la alternativa es abrir el JSON en
     una pestaña nueva con `target="_blank"` en vez de forzar la descarga).
+
+- **2026-08-20** — **Fase 7 (en progreso): breakpoints reales de
+  tablet/desktop.** Hasta ahora solo existía un breakpoint (`640px`,
+  repetido en varios archivos) para pasar de "iPhone" a "un poco más de
+  aire" — nada distinguía tablet de desktop, y la vista Agenda no
+  aprovechaba el espacio de sobra en pantallas grandes.
+  - **Decisión (confirmada con el usuario):** la vista **semana** se queda
+    con scroll horizontal siempre, sin importar el ancho de pantalla — más
+    simple que hacerla expandirse, y de hecho coherente con la idea de
+    "scroll de código horizontal" del design system (sección 9). No se
+    tocó `week-view`/`week-col` por esta razón.
+  - **`css/layout.css`** — nuevo modificador `.container--agenda`: se queda
+    en `--max-content-width` (720px) igual que el resto de la app hasta
+    768px, pero crece a 960px en tablet (`≥768px`) y a 1200px en desktop
+    (`≥1024px`). Solo se aplica en `pages/agenda.html` — Hoy/Notas/Ajustes
+    siguen fijas en 720px a propósito: son contenido de lectura (diario,
+    listas), y una columna angosta se lee mejor sin importar cuánta
+    pantalla haya. Agenda sí se beneficia de más ancho porque semana/mes
+    son grillas, no párrafos.
+  - **`pages/agenda.html`** — se agregó la clase `container--agenda` junto
+    a `container` en el único `<div class="container">` de la página.
+  - **`css/agenda.css`** — nuevo breakpoint en `1024px` para
+    `.month-view__grid`: sube `grid-auto-rows` de `minmax(80px, auto)`
+    (el valor que ya existía desde antes para `≥640px`) a
+    `minmax(104px, auto)`. Motivo: con el contenedor de Agenda ensanchado a
+    1200px en desktop, las celdas de mes (7 columnas) quedaban muy anchas
+    y planas (~167px de ancho contra 80px de alto) si se dejaba la altura
+    de tablet sin ajustar.
+  - **Se evaluó y se descartó tocar `week-view__grid`** (tiene
+    `min-width: 100%` en el flex row): en un principio pareció que el
+    contenedor más ancho iba a dejar una franja vacía después de las 7
+    columnas fijas (820px de contenido en un contenedor de 1200px), pero
+    esa franja ya existía de todas formas porque `.week-view` es un bloque
+    que llena el 100% del contenedor sin importar su ancho — no es una
+    regresión nueva de este cambio, así que no había nada que corregir ahí.
+  - **Verificación**: conteo de llaves `{`/`}` balanceado en los 2 archivos
+    CSS tocados (`layout.css` 30/30, `agenda.css` 66/66), y confirmación de
+    que la clase `container--agenda` quedó aplicada en el HTML. **No se
+    probó visualmente en un navegador real** (este entorno no tiene una
+    herramienta de captura de pantalla/navegador headless disponible) —
+    pendiente abrir `pages/agenda.html` en un navegador de verdad y
+    redimensionar la ventana (o usar las herramientas de desarrollador en
+    modo responsive) para confirmar visualmente los 3 breakpoints (640,
+    768, 1024).
+  - **Pendiente del resto de la Fase 7**: auditoría visual completa contra
+    el design system de la sección 9 (colores, tipografía, elemento firma),
+    y checklist de despliegue final en Netlify (dominio, headers, variables
+    de entorno de producción confirmadas, etc.).

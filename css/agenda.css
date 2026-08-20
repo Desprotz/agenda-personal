@@ -364,6 +364,12 @@
 @media (min-width: 640px) {
   .month-view__grid { grid-auto-rows: minmax(80px, auto); }
 }
+/* Desktop (contenedor de Agenda crece a 1200px, ver layout.css
+   .container--agenda): las celdas quedarían muy anchas y planas si se
+   mantiene la altura de tablet, así que crecen un poco más en vertical. */
+@media (min-width: 1024px) {
+  .month-view__grid { grid-auto-rows: minmax(104px, auto); }
+}
 
 /* --- Filtro por etiqueta (buscador/filtro) --- */
 .filter-bar {
