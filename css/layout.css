@@ -50,6 +50,28 @@
 }
 .tabbar__tabs::-webkit-scrollbar { display: none; }
 
+/* --- Botón de buscador global (Fase 6) --- */
+.tabbar__search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  flex-shrink: 0;
+  font-size: var(--fs-lg);
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+.tabbar__search-btn:hover,
+.tabbar__search-btn:active {
+  color: var(--text-primary);
+  background: var(--bg-surface-raised);
+}
+
 .tab {
   display: flex;
   align-items: center;

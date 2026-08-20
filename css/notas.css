@@ -92,26 +92,7 @@
 }
 .note-entry__linked-event::before { content: '↳ '; }
 
-/* --- Buscador global --- */
-.search-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  background: var(--bg-gutter);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-3);
-  margin-bottom: var(--space-4);
-}
-.search-bar input {
-  background: transparent;
-  border: none;
-  flex: 1;
-  font-size: var(--fs-base);
-  min-height: 32px;
-}
-.search-bar input:focus { outline: none; }
-.search-bar__prompt {
-  font-family: var(--font-mono);
-  color: var(--accent-cyan);
-}
+/* --- Buscador de esta página (por texto, dentro de notas.html) ---
+   El estilo compartido de `.search-bar` vive en componentes.css desde la
+   Fase 6, porque el buscador GLOBAL (eventos + notas) también lo usa y
+   corre en las 4 páginas, no solo en notas.html. */

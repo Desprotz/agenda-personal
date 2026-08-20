@@ -3,7 +3,7 @@
 > Este archivo es la fuente de verdad del proyecto. Se actualiza con cada avance,
 > decisión técnica y cambio de rumbo. Antes de tocar código, revisar este documento.
 
-Última actualización: 2026-08-20 (v8 — Fase 5 cerrada: notificaciones/alarmas locales, próxima alarma real, recordatorio de diario, Service Worker)
+Última actualización: 2026-08-20 (v9 — Fase 6 cerrada: buscador global de eventos + notas, exportar/backup en JSON)
 
 ---
 
@@ -277,7 +277,12 @@ Dado que el uso principal es desde iPhone, esto cambia el diseño técnico:
       **Completada 2026-08-20**: implementada la opción 2 de la sección 4.3
       (notificaciones locales mientras la PWA está abierta/reciente, sin
       servidor todavía). Ver bitácora para el detalle completo.
-- [ ] **Fase 6** — **Buscador global** (eventos + notas) + **exportar/backup** en JSON.
+- [x] **Fase 6** — **Buscador global** (eventos + notas) + **exportar/backup** en JSON.
+      **Completada 2026-08-20**: buscador accesible desde un botón ⌕ en la
+      tabbar de las 4 páginas (modal singleton, mismo patrón que
+      modalEvento/modalNota) + botón "Exportar backup (.json)" de
+      `ajustes.html` (ya existía como UI, ahora conectado). Ver bitácora
+      para el detalle completo.
 - [ ] **Fase 7** — Pulido visual, responsive, despliegue final en Netlify.
 
 ---
@@ -1022,3 +1027,66 @@ de código real y no un calendario genérico con tema oscuro.
       no viene de ningún requisito explícito — se puede ajustar en
       `VENTANA_GRACIA_MIN` (`alarmaManager.js`) si en el uso real resulta
       muy corta o muy larga.
+
+- **2026-08-20** — **Fase 6 cerrada: buscador global (eventos + notas) +
+  exportar/backup en JSON.**
+  - **`js/services/busquedaService.js`** (implementado) — `buscar(query)` ->
+    `{ eventos: [...], notas: [...] }`. Las notas se filtran en el backend
+    (reutiliza el parámetro `?q=` que `netlify/functions/notas.js` ya tenía
+    desde la Fase 4, LIKE sobre título/contenido). Los eventos **no** tienen
+    ese parámetro en `netlify/functions/eventos.js` todavía, así que se
+    filtran en el cliente (título/descripción) sobre la lista completa que
+    ya devuelve `agendaService.listarEventos()` — razonable para el volumen
+    de una agenda personal; queda anotado como el punto exacto a cambiar si
+    algún día hiciera falta un `?q=` real ahí también.
+  - **`js/components/buscadorGlobal.js`** (nuevo) — modal singleton igual
+    que `modalEvento.js`/`modalNota.js` (se inyecta una vez en `<body>` la
+    primera vez que se abre), con buscador debounced (300ms, mismo patrón
+    que `notas.js`). Descarta respuestas que lleguen fuera de orden con un
+    contador de "última búsqueda" (si el usuario escribe rápido y una
+    respuesta vieja llega después que una más nueva, no pisa el resultado
+    correcto). Agrupa resultados en dos secciones ("Actividades" / "Notas");
+    tocar un resultado cierra el buscador y abre el modal de edición
+    correspondiente (`modalEvento.abrirParaEditar` /
+    `modalNota.abrirParaEditarNota`), que ya se encargan de refrescar su
+    propia vista al guardar — el buscador no necesita saber nada de eso.
+  - **Punto de entrada**: botón `⌕` nuevo al final de la tabbar (clase
+    `.tabbar__search-btn`, en `layout.css`), agregado a las **4 páginas**
+    (`index.html`, `pages/agenda.html`, `pages/notas.html`,
+    `pages/ajustes.html`) igual que se hizo con `alarmaManager.js` en la
+    Fase 5, para que el buscador esté disponible sin importar qué vista
+    esté abierta.
+  - **`js/services/exportService.js`** (implementado) —
+    `generarBackup()` trae eventos + notas + etiquetas de la API y arma un
+    objeto `{ version, generado_en, eventos, notas, etiquetas }`;
+    `exportarTodoComoJSON()` lo serializa y dispara la descarga con un
+    `<a download>` temporal (funciona igual dentro de la PWA instalada en
+    iOS). El JSON incluye las referencias `url_storage` de imágenes/audio
+    de cada nota, pero no los archivos en sí — no es práctico embeber
+    binarios de Netlify Blobs en un JSON de texto; queda como mapa de qué
+    archivo pertenece a qué nota por si algún día se migra el storage.
+  - **`js/components/exportarDatos.js`** (nuevo) — conecta el botón
+    "Exportar backup (.json)" que ya existía como UI en `ajustes.html`
+    desde la Fase 1 (`btn-exportar`, sin lógica hasta ahora). Deshabilita
+    el botón mientras exporta, muestra el nombre del archivo generado como
+    confirmación visual, y vuelve al texto original después de un momento.
+  - **CSS**: `.search-bar` (antes solo en `notas.css`, usada por el
+    buscador de texto local de `notas.html`) se movió a `componentes.css`
+    porque ahora el buscador global también la usa y corre en las 4
+    páginas, no solo en notas — evita duplicar la regla. Nuevas clases en
+    `componentes.css`: `.search-results__section`, `.search-result` (misma
+    lógica visual que `.card--interactive`, con ícono + título + meta +
+    chip de etiqueta si aplica).
+  - **Sin cambios en el esquema de Turso ni en las Netlify Functions**:
+    todo se resuelve con los endpoints que ya existían (`/api/eventos`,
+    `/api/notas?q=`, `/api/etiquetas`).
+  - **Verificación**: `node --check` en los 4 archivos `.js` nuevos/tocados,
+    y confirmación de que cada import (`abrirParaEditar` de `modalEvento.js`,
+    `abrirParaEditarNota` de `modalNota.js`, utilidades de `fechas.js`, etc.)
+    coincide con lo que esos módulos realmente exportan. Igual que en la
+    Fase 5, no se probó en el iPhone real (este entorno no puede levantar
+    Netlify Dev + Turso) — pendiente confirmar ahí que la descarga del
+    backup funciona bien dentro de la PWA instalada (Safari en modo
+    standalone maneja `<a download>` distinto a una pestaña normal en
+    algunas versiones de iOS; si falla, la alternativa es abrir el JSON en
+    una pestaña nueva con `target="_blank"` en vez de forzar la descarga).
