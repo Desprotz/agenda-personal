@@ -1,12 +1,11 @@
 // components/calendario.js
 // Renderiza la vista Agenda en sus 3 modos: día, semana y mes.
 //
-// En esta fase (maquetado estático) los eventos salen de un "pool" de datos
-// de ejemplo que se repiten según el día de la semana, para poder ver algo
-// parecido a datos reales (incluyendo recurrencia) en las 3 vistas.
-// A partir de la Fase 3 esto se reemplaza por datos reales de agendaService.js,
-// pero la forma de los eventos ({ titulo, inicio, fin, categoria }) se mantiene
-// para que el reemplazo sea sencillo.
+// Fase 3: los eventos ya no salen de un "pool" de ejemplo (POOL_EVENTOS,
+// eliminado en esta fase) — vienen de verdad de Turso vía agendaService.js.
+// La recurrencia (diario / dias_especificos / puntual / rango) se expande en
+// el cliente con agendaService.eventosParaFecha(), la misma función que usa
+// la vista Hoy, para que ambas coincidan siempre.
 
 import {
   formatearHora,
@@ -21,43 +20,56 @@ import {
   sumarMeses,
   DIAS_CORTOS_LUN,
 } from '../utils/fechas.js';
+import * as agendaService from '../services/agendaService.js';
+import * as etiquetasService from '../services/etiquetasService.js';
+import { initModalEvento, abrirParaCrear, abrirParaEditar } from './modalEvento.js';
 
 const HORA_INICIO = 6;   // 06:00
 const HORA_FIN = 23;     // 23:00
 const ALTO_FILA_DIA = 64;     // debe coincidir con --hour row height en agenda.css (vista día)
 const ALTO_FILA_SEMANA = 48;  // debe coincidir con --week-row-height en agenda.css
 
-// --- Pool de eventos de ejemplo, con recurrencia por día de la semana ---
-// dias: 0 = domingo ... 6 = sábado
-const POOL_EVENTOS = [
-  { titulo: 'Gimnasio', inicio: '07:00', fin: '08:00', categoria: 'salud', dias: [1, 3, 5] },
-  { titulo: 'Entrega módulo de autenticación', inicio: '10:00', fin: '12:00', categoria: 'trabajo', dias: [2] },
-  { titulo: 'Reunión de equipo', inicio: '17:30', fin: '18:30', categoria: 'trabajo', dias: [2, 4] },
-  { titulo: 'Clase de inglés', inicio: '19:00', fin: '20:00', categoria: 'estudio', dias: [1, 3] },
-  { titulo: 'Leer 20 páginas', inicio: '21:00', fin: '21:30', categoria: 'personal', dias: [0, 1, 2, 3, 4, 5, 6] },
-  { titulo: 'Repaso semanal', inicio: '09:00', fin: '10:30', categoria: 'estudio', dias: [6] },
-  { titulo: 'Mercado', inicio: '11:00', fin: '12:00', categoria: 'personal', dias: [6] },
-];
-
 // --- Estado de la vista ---
 const estado = {
   vista: 'dia',        // 'dia' | 'semana' | 'mes'
   fechaActual: new Date(),
-  categoriasActivas: new Set(), // vacío = mostrar todas
+  etiquetasActivas: new Set(), // vacío = mostrar todas
+  eventos: [],          // filas crudas de la tabla `eventos`
+  etiquetas: [],         // filas crudas de la tabla `etiquetas`
 };
+
+function etiquetaPorId(id) {
+  return estado.etiquetas.find((et) => et.id === id) || null;
+}
 
 function minutosDesdeTexto(hhmm) {
   const [h, m] = hhmm.split(':').map(Number);
   return h * 60 + m;
 }
 
-/** Devuelve los eventos de ejemplo para una fecha dada, ya filtrados por categoría activa. */
+/**
+ * Eventos que ocurren en `fecha`, ya filtrados por etiqueta activa y
+ * "preparados" para render: hora garantizada (los 'rango' sin horario se
+ * marcan todoElDia y se tratan como si cubrieran el día completo visible).
+ */
 function obtenerEventosParaFecha(fecha) {
-  const diaSemana = fecha.getDay();
-  return POOL_EVENTOS
-    .filter((ev) => ev.dias.includes(diaSemana))
-    .filter((ev) => estado.categoriasActivas.size === 0 || estado.categoriasActivas.has(ev.categoria))
-    .map((ev) => ({ ...ev }));
+  const ocurrencias = agendaService.eventosParaFecha(estado.eventos, fecha);
+
+  return ocurrencias
+    .filter((ev) => estado.etiquetasActivas.size === 0 || estado.etiquetasActivas.has(ev.etiqueta_id))
+    .map((ev) => ({
+      id: ev.id,
+      titulo: ev.titulo,
+      inicio: ev.hora_inicio || `${String(HORA_INICIO).padStart(2, '0')}:00`,
+      fin: ev.hora_fin || `${String(HORA_FIN).padStart(2, '0')}:59`,
+      todoElDia: !ev.hora_inicio,
+      etiqueta: etiquetaPorId(ev.etiqueta_id),
+      raw: ev,
+    }));
+}
+
+function estiloColor(variable, etiqueta) {
+  return etiqueta ? `${variable}: ${etiqueta.color};` : '';
 }
 
 // ============================================================
@@ -92,13 +104,13 @@ function renderEventosDia(contenedor, fecha) {
     const alto = ((finMin - inicioMin) / 60) * ALTO_FILA_DIA;
 
     const bloque = document.createElement('div');
-    bloque.className = `event-block event-block--${ev.categoria}`;
-    bloque.style.top = `${top}px`;
-    bloque.style.height = `${Math.max(alto, 28)}px`;
+    bloque.className = `event-block${ev.todoElDia ? ' event-block--todo-el-dia' : ''}`;
+    bloque.style.cssText = `top:${top}px; height:${Math.max(alto, 28)}px; ${estiloColor('--block-color', ev.etiqueta)}`;
     bloque.innerHTML = `
       <div class="event-block__title">${ev.titulo}</div>
-      <div class="event-block__meta">${ev.inicio} – ${ev.fin}</div>
+      <div class="event-block__meta">${ev.todoElDia ? 'todo el día' : `${ev.inicio} – ${ev.fin}`}</div>
     `;
+    bloque.addEventListener('click', () => abrirParaEditar(ev.raw));
     contenedor.appendChild(bloque);
   });
 }
@@ -203,13 +215,16 @@ function renderVistaSemana() {
       const alto = ((finMin - inicioMin) / 60) * ALTO_FILA_SEMANA;
 
       const bloque = document.createElement('div');
-      bloque.className = `week-event week-event--${ev.categoria}`;
-      bloque.style.top = `${top}px`;
-      bloque.style.height = `${Math.max(alto, 20)}px`;
+      bloque.className = `week-event${ev.todoElDia ? ' week-event--todo-el-dia' : ''}`;
+      bloque.style.cssText = `top:${top}px; height:${Math.max(alto, 20)}px; ${estiloColor('--block-color', ev.etiqueta)}`;
       bloque.innerHTML = `
         <span class="week-event__title">${ev.titulo}</span>
-        <span class="week-event__meta">${ev.inicio}</span>
+        <span class="week-event__meta">${ev.todoElDia ? 'todo el día' : ev.inicio}</span>
       `;
+      bloque.addEventListener('click', (evt) => {
+        evt.stopPropagation();
+        abrirParaEditar(ev.raw);
+      });
       horasCol.appendChild(bloque);
     });
 
@@ -257,18 +272,22 @@ function renderVistaMes() {
     if (esHoy) celda.classList.add('month-cell--hoy');
 
     const eventosDia = obtenerEventosParaFecha(fechaCelda);
-    const categoriasDia = [...new Set(eventosDia.map((ev) => ev.categoria))];
-    const dots = categoriasDia
-      .slice(0, 4)
-      .map((cat) => `<span class="month-cell__dot month-cell__dot--${cat}"></span>`)
-      .join('');
+    // Un punto por etiqueta distinta ese día (o un punto gris si no tiene etiqueta).
+    const vistas = new Set();
+    const dotsHtml = [];
+    eventosDia.forEach((ev) => {
+      const clave = ev.etiqueta ? ev.etiqueta.id : 'sin-etiqueta';
+      if (vistas.has(clave) || dotsHtml.length >= 4) return;
+      vistas.add(clave);
+      dotsHtml.push(`<span class="month-cell__dot" style="${estiloColor('--dot-color', ev.etiqueta)}"></span>`);
+    });
     const extra = eventosDia.length > 4
       ? `<span class="month-cell__mas">+${eventosDia.length - 4}</span>`
       : '';
 
     celda.innerHTML = `
       <span class="month-cell__num">${fechaCelda.getDate()}</span>
-      <span class="month-cell__dots">${dots}${extra}</span>
+      <span class="month-cell__dots">${dotsHtml.join('')}${extra}</span>
     `;
     celda.addEventListener('click', () => {
       estado.fechaActual = fechaCelda;
@@ -277,6 +296,42 @@ function renderVistaMes() {
 
     gridEl.appendChild(celda);
   }
+}
+
+// ============================================================
+// Filtro por etiqueta (dinámico, viene de la tabla `etiquetas`)
+// ============================================================
+function renderFiltroEtiquetas() {
+  const contenedor = document.getElementById('filtro-etiquetas');
+  if (!contenedor) return;
+
+  if (estado.etiquetas.length === 0) {
+    contenedor.innerHTML = '<span class="text-meta">Sin etiquetas todavía — créalas desde "+ Actividad".</span>';
+    return;
+  }
+
+  contenedor.innerHTML = estado.etiquetas.map((et) => `
+    <button class="chip" type="button" data-etiqueta-id="${et.id}"
+      style="--chip-color: ${et.color}"
+      aria-pressed="${estado.etiquetasActivas.has(et.id)}">${escaparHtml(et.nombre)}</button>
+  `).join('');
+
+  contenedor.querySelectorAll('.chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const id = chip.dataset.etiquetaId;
+      const activo = chip.getAttribute('aria-pressed') === 'true';
+      chip.setAttribute('aria-pressed', String(!activo));
+      if (activo) estado.etiquetasActivas.delete(id);
+      else estado.etiquetasActivas.add(id);
+      renderVistaActual();
+    });
+  });
+}
+
+function escaparHtml(texto) {
+  const div = document.createElement('div');
+  div.textContent = texto;
+  return div.innerHTML;
 }
 
 // ============================================================
@@ -343,16 +398,31 @@ function inicializarControles() {
   document.getElementById('nav-siguiente')?.addEventListener('click', () => navegar(1));
   document.getElementById('nav-hoy')?.addEventListener('click', irAHoy);
 
-  document.querySelectorAll('.filter-bar .chip').forEach((chip) => {
-    chip.addEventListener('click', () => {
-      const cat = chip.dataset.categoria;
-      const activo = chip.getAttribute('aria-pressed') === 'true';
-      chip.setAttribute('aria-pressed', String(!activo));
-      if (activo) estado.categoriasActivas.delete(cat);
-      else estado.categoriasActivas.add(cat);
-      renderVistaActual();
-    });
+  document.getElementById('btn-nueva-actividad')?.addEventListener('click', () => {
+    abrirParaCrear(estado.fechaActual);
   });
+}
+
+// ============================================================
+// Carga de datos reales (Turso, vía Netlify Functions)
+// ============================================================
+async function cargarDatos() {
+  const contenedor = document.getElementById('vista-dia');
+  try {
+    const [eventos, etiquetas] = await Promise.all([
+      agendaService.listarEventos(),
+      etiquetasService.listarEtiquetas(),
+    ]);
+    estado.eventos = eventos;
+    estado.etiquetas = etiquetas;
+    renderFiltroEtiquetas();
+    renderVistaActual();
+  } catch (error) {
+    console.error('[calendario] No se pudieron cargar los eventos:', error.message);
+    if (contenedor) {
+      contenedor.innerHTML = `<div class="empty-state">no se pudieron cargar los eventos — ${error.message}</div>`;
+    }
+  }
 }
 
 function inicializarAgenda() {
@@ -361,7 +431,13 @@ function inicializarAgenda() {
 
   estado.fechaActual = iniciarDia(new Date());
   inicializarControles();
-  renderVistaActual();
+
+  initModalEvento({
+    onGuardado: () => cargarDatos(),
+    onEliminado: () => cargarDatos(),
+  });
+
+  cargarDatos();
 }
 
 document.addEventListener('DOMContentLoaded', inicializarAgenda);

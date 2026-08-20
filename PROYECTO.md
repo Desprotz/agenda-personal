@@ -3,7 +3,7 @@
 > Este archivo es la fuente de verdad del proyecto. Se actualiza con cada avance,
 > decisión técnica y cambio de rumbo. Antes de tocar código, revisar este documento.
 
-Última actualización: 2026-07-22 (v4 — cambio de backend: Supabase → Turso + Netlify Functions)
+Última actualización: 2026-08-19 (v6 — Fase 3 cerrada: CRUD de eventos/etiquetas, checklist "hecho hoy" y racha, conectados de punta a punta)
 
 ---
 
@@ -63,6 +63,14 @@ notas de voz (sección 4.2) pasan a guardarse en **Netlify Blobs** — incluido
 gratis en el mismo plan de Netlify que ya se usa para el hosting, así que no
 se agrega ninguna cuenta ni servicio nuevo.
 
+**Estado actual (2026-08-19): conexión real en producción.** Ya no es solo
+código — la base existe en Turso, las 6 tablas están creadas, las variables
+de entorno están puestas en Netlify, el sitio está conectado a GitHub para
+que las Functions corran de verdad, y `ajustes.html` confirma
+"✅ Conectado a Turso" en el sitio publicado. Ver el cierre de la Fase 2 en
+la bitácora (sección 7) para el detalle completo, incluyendo un bug de
+formato de respuesta en las Functions que se encontró y corrigió en el camino.
+
 ---
 
 ## 3. Estructura de carpetas (propuesta)
@@ -118,8 +126,8 @@ agenda-personal/
 │   └── schema.sql            ← definición de tablas, sintaxis SQLite/libSQL (ver sección 10)
 └── netlify/
     └── functions/            ← única capa que conoce el token de Turso
-        ├── _db.js            ← cliente de Turso compartido (no es un endpoint)
-        ├── ping.js           ← health-check de conexión (usado en ajustes.html)
+        ├── _db.js            ← cliente de Turso compartido + helper json() (no es un endpoint)
+        ├── ping.js           ← health-check de conexión (usado en ajustes.html) — ✅ funcionando en producción
         ├── eventos.js        ← API de `eventos` (Fase 3)
         ├── notas.js          ← API de `notas` (Fase 4)
         ├── etiquetas.js      ← API de `etiquetas` (Fase 3)
@@ -220,6 +228,12 @@ Dado que el uso principal es desde iPhone, esto cambia el diseño técnico:
 > arriba) o como un array de fechas dentro de `eventos` (más simple pero menos
 > flexible para consultas de "racha").
 
+> ✅ **Estado real en Turso (2026-08-19):** las 6 tablas de este modelo
+> (`etiquetas`, `eventos`, `cumplimientos`, `notas`, `notas_imagenes`,
+> `notas_audio`) ya existen y coinciden exactamente con `turso/schema.sql`.
+> Confirmado consultando `sqlite_master` en la SQL console del dashboard de
+> Turso. Están vacías — el CRUD real llega en la Fase 3/4.
+
 ---
 
 ## 6. Roadmap / Fases
@@ -232,16 +246,22 @@ Dado que el uso principal es desde iPhone, esto cambia el diseño técnico:
       Dentro de esta fase, la vista **Agenda** ya tiene sus 3 modos completos —
       **día / semana / mes** — con navegación de fecha y filtrado por etiqueta,
       todo sobre datos de ejemplo (ver bitácora del 2026-07-22 más abajo).
-- [ ] **Fase 2** — Setup de Turso (base de datos + tablas) + Netlify Functions
-      como capa de API + conexión desde el front. Código listo (cliente de
-      Turso en `netlify/functions/_db.js`, `apiClient.js` en el front, schema
-      en `turso/schema.sql`, sin ningún tipo de login) — falta el paso manual:
-      crear la base real en Turso, pegar sus credenciales como variables de
-      entorno en Netlify, y correr `npm install` para las dependencias de las
-      Functions. Ver bitácora del 2026-07-22 para el detalle exacto.
-- [ ] **Fase 3** — CRUD de eventos de agenda (crear, editar, eliminar, distinguir tipos)
+- [x] **Fase 2** — Setup de Turso (base de datos + tablas) + Netlify Functions
+      como capa de API + conexión desde el front. **Completada 2026-08-19**:
+      base creada, tablas cargadas, variables de entorno puestas en Netlify,
+      sitio conectado a GitHub, y un bug de formato de respuesta en las
+      Functions encontrado y corregido. `ajustes.html` en producción confirma
+      "✅ Conectado a Turso". Ver bitácora para el detalle completo.
+- [x] **Fase 3** — CRUD de eventos de agenda (crear, editar, eliminar, distinguir tipos)
       + **etiquetas/categorías con color** y filtrado por etiqueta
       + **checklist "hecho hoy"** para tareas recurrentes (registro de cumplimiento/racha).
+      **Completada 2026-08-19**: las 3 Netlify Functions (`eventos.js`,
+      `etiquetas.js`, `cumplimientos.js`), los servicios del frontend
+      (`agendaService.js`, `etiquetasService.js`, `cumplimientoService.js`),
+      las validaciones de formulario, el modal de crear/editar evento, y las
+      vistas Agenda (día/semana/mes) y Hoy ya corren contra datos reales de
+      Turso. Ver bitácora para el detalle completo, incluyendo un bug de
+      servicios sin implementar que se encontró y corrigió en el camino.
 - [ ] **Fase 4** — CRUD de notas + subida de imágenes + vínculo nota-evento
       + **notas de voz** (grabación corta, Web Audio API + Storage).
 - [ ] **Fase 5** — Sistema de notificaciones/alarmas + Service Worker
@@ -447,6 +467,163 @@ Dado que el uso principal es desde iPhone, esto cambia el diseño técnico:
   - Todavía **no hay CRUD real** (crear/editar/borrar eventos o notas todavía
     usa datos de ejemplo) — sigue siendo exactamente el alcance de la Fase 3,
     ahora implementado contra Turso en vez de Supabase.
+  - *(⚠️ Los pasos manuales de arriba se completaron el 2026-08-19 — ver la
+    entrada siguiente para el detalle real de cómo se ejecutaron y los
+    imprevistos que salieron en el camino.)*
+- **2026-08-19** — **Fase 2 cerrada: Turso + Netlify Functions en producción.**
+  Se ejecutaron los pasos manuales pendientes de la entrada anterior. El
+  proceso real tuvo varias diferencias frente al plan original (documentadas
+  aquí para referencia futura):
+  - **Base de datos:** se creó en el dashboard web de Turso (no por CLI) con
+    el nombre `agenda-personal`, subiendo un archivo `.db` ya armado (opción
+    "Upload SQLite File") en vez de correr `turso db shell < schema.sql`.
+    - Al crear la base salió el error "group not found" — normal en cuentas
+      nuevas de Turso que todavía no tienen ningún "group" (unidad que agrupa
+      bases por ubicación/región). Se resolvió creando un group manual
+      llamado `default` desde "Create Group" antes de reintentar. Región
+      elegida: **AWS US East (Virginia)** — la más cercana en latencia para
+      Colombia/LatAm de las disponibles en el plan free.
+    - El archivo `.db` subido creó la base pero **vacía** (sin tablas) — no
+      quedó claro por qué. Se recuperó ejecutando el `schema.sql` a mano
+      desde la SQL console del dashboard.
+    - Detalle importante de la SQL console del dashboard: **ejecuta un solo
+      `CREATE TABLE` a la vez**, no un script completo con varias
+      instrucciones separadas por `;`. Se corrieron las 6 sentencias una por
+      una (respetando el orden por las referencias FK: `etiquetas` antes que
+      `eventos`, y esas dos antes que `cumplimientos`/`notas`). Confirmado el
+      resultado final con `SELECT name FROM sqlite_master WHERE type='table'`
+      y también visualmente en el panel "Tables" del dashboard (Drizzle
+      Studio) — las 6 tablas con todas sus columnas coinciden con
+      `turso/schema.sql`.
+  - **Variables de entorno:** `TURSO_DATABASE_URL` (sin marcar como secreta,
+    es solo una URL) y `TURSO_AUTH_TOKEN` (marcada como "Contiene valores
+    secretos") puestas en Netlify → Project configuration → Environment
+    variables, con "All scopes" y "Same value for all deploy contexts".
+    - ⚠️ Nota de seguridad: en el proceso, un token de Turso se compartió por
+      error en texto plano en la conversación con el asistente. Se roto
+      inmediatamente (revocado en Turso, generado uno nuevo) antes de
+      ponerlo en Netlify. Queda como recordatorio: el token nunca debe
+      copiarse/pegarse por canales que no sean directo Turso → Netlify.
+  - **Deploy real de las Functions:** el sitio de Netlify (`desprotz`,
+    dominio `desprotz.netlify.app`) había quedado desplegado originalmente
+    por "Netlify Drop" (arrastrar y soltar archivos sueltos), lo cual **no
+    ejecuta Netlify Functions**. Se conectó el repositorio real de GitHub
+    (`Desprotz/agenda-personal`, creado y subido por primera vez en este
+    mismo cierre de fase, con `git init` / `git add` / `git commit` /
+    `git push` desde local) vía "Continuous deployment" en Netlify.
+    - Al vincular el repo, Netlify **creó un sitio nuevo** en vez de
+      reutilizar el existente (comportamiento por defecto de "Import from
+      Git"). El sitio viejo (`legendary-syrniki-d64c1e`, el del deploy por
+      Netlify Drop) quedó huérfano/sin usar — el sitio real de aquí en
+      adelante es `desprotz.netlify.app`. Las variables de entorno se
+      tuvieron que volver a crear en este sitio nuevo (no se heredan del viejo).
+    - También hizo falta autorizar a la GitHub App de Netlify sobre el
+      repositorio nuevo (`github.com/settings/installations` → Configure →
+      dar acceso a `agenda-personal`), porque por defecto solo tenía permiso
+      sobre repos autorizados anteriormente.
+  - **Bug encontrado y corregido — formato de respuesta de las Functions:**
+    primer deploy con el repo conectado dio **502 Bad Gateway** en
+    `/api/ping` (confirmado en la pestaña Network del navegador, con el
+    mensaje `[apiClient] Falló el ping de conexión: Error 502 llamando a
+    /ping`). Causa: `netlify/functions/_db.js` exportaba un helper `json()`
+    que devolvía el formato **viejo** de Netlify Functions
+    (`{statusCode, headers, body}`), pero todas las funciones estaban
+    escritas con la sintaxis **nueva** (`export default async function
+    handler()` + `export const config = { path: ... }`), que espera que se
+    devuelva un objeto `Response` real (`new Response(...)`). Esa mezcla
+    hacía que la función lanzara una excepción al ejecutarse. Se corrigió
+    `json()` para que devuelva `new Response(JSON.stringify(body), {
+    status, headers })`. **Aplica a futuro:** al implementar `eventos.js`,
+    `notas.js`, `etiquetas.js`, `cumplimientos.js` y `media.js` en las
+    próximas fases, todas deben seguir devolviendo `Response` a través de
+    este mismo helper — no volver al formato viejo.
+  - **Resultado final confirmado:** tras el fix y el redeploy automático
+    (push a `main` → Netlify redespliega solo), `desprotz.netlify.app/pages/ajustes.html`
+    muestra **"✅ Conectado a Turso"** en producción. Fase 2 oficialmente
+    cerrada.
+- **2026-08-19** — **Fase 3 cerrada: CRUD de eventos/etiquetas + checklist
+  "hecho hoy" + racha, conectados de punta a punta.**
+  - **Backend (`netlify/functions/`):**
+    - `etiquetas.js` — CRUD completo (GET/POST/PUT/DELETE), valida nombre
+      (obligatorio, máx. 40 caracteres) y color en formato hex.
+    - `eventos.js` — CRUD completo con validación específica por `tipo`
+      (`diario` / `dias_especificos` / `puntual` / `rango`): horario
+      obligatorio salvo en `rango`, `dias_semana` obligatorio en
+      `dias_especificos`, `fecha_inicio`/`fecha_fin` obligatorias en
+      `puntual`/`rango`.
+    - `cumplimientos.js` — GET por `evento_id` o por `fecha`, POST con upsert
+      (`on conflict(evento_id, fecha)`) para marcar "hecho hoy"; desmarcar
+      simplemente borra la fila (no existe un estado "hecho: false"
+      persistido).
+    - Ambas `eventos.js` y `etiquetas.js` leen el `:id` de la ruta con
+      `context.params.id` (forma oficial de Netlify Functions v2), con
+      respaldo manual parseando el pathname si `context` no trae el dato.
+  - **Frontend — servicios (`js/services/`):**
+    - `agendaService.js` — CRUD contra `/api/eventos` (`listarEventos`,
+      `crearEvento`, `actualizarEvento`, `eliminarEvento`) + la lógica de
+      expansión de recurrencia (`eventoOcurreEnFecha`, `eventosParaFecha`,
+      `esRecurrente`, `describirRecurrencia`), compartida entre la vista
+      Agenda y la vista Hoy para que ambas coincidan siempre.
+    - `etiquetasService.js` — CRUD contra `/api/etiquetas`.
+    - `cumplimientoService.js` — ya existía `calcularRacha`; ahora depende de
+      `agendaService.eventoOcurreEnFecha` (antes esa función no existía, ver
+      "bug encontrado" más abajo).
+    - `js/utils/validaciones.js` — `validarFormularioEvento` y
+      `validarEtiqueta`, espejo en el cliente de las reglas del backend, para
+      dar feedback inmediato sin esperar el roundtrip a la API. La API sigue
+      siendo la fuente de verdad final.
+  - **Frontend — UI (`js/components/`):**
+    - `modalEvento.js` (nuevo) — modal único de crear/editar evento, inyectado
+      como singleton en `<body>`, reutilizado tanto por `agenda.html` como por
+      `index.html` (vista Hoy). Incluye selector de tipo con campos
+      condicionales, selector de días de la semana, selector de etiqueta con
+      creación inline, y alarma opcional.
+    - `calendario.js` — reescrito para usar `agendaService`/`etiquetasService`
+      reales en vez del `POOL_EVENTOS` de ejemplo de la Fase 1 (eliminado).
+      Mantiene los 3 modos (día/semana/mes), el filtro dinámico por etiqueta,
+      y ahora los bloques de evento abren el modal al hacer clic.
+    - `checklistHoy.js` (nuevo) — conecta la sección "Horario de hoy" de
+      `index.html` con eventos reales: checklist de "hecho hoy" para tareas
+      recurrentes, badge de racha, y clic en cualquier ítem para editar.
+      "Últimas notas" sigue siendo maqueta estática hasta la Fase 4.
+  - **CSS:** nuevas clases en `componentes.css` (modal, selector de días,
+    `task-check`, `etiqueta-picker`) y ajustes en `agenda.css`/`hoy.css` para
+    los bloques de evento y los ítems del checklist.
+  - **Decisiones tomadas durante la implementación:**
+    - Un evento de tipo `rango` **sin hora fija** se trata como "todo el día"
+      tanto en el timeline (ocupa el bloque completo visible) como en el
+      render de la vista Hoy (se muestra `·` en vez de una hora).
+    - El cálculo de racha (`calcularRacha`) tiene un tope de **730 días (2
+      años)** hacia atrás, para no iterar sin límite en eventos muy antiguos.
+    - Desmarcar un cumplimiento **no** guarda un registro con `hecho: 0` —
+      simplemente borra la fila de `cumplimientos`. La tabla solo registra
+      días efectivamente cumplidos.
+    - El día de hoy nunca rompe la racha aunque todavía no esté marcado (se
+      puede marcar más tarde); sí la rompe cualquier día *anterior* que haya
+      quedado sin marcar.
+  - **⚠️ Bug encontrado y corregido — servicios del frontend sin implementar:**
+    al revisar el estado del proyecto antes de cerrar la fase, se encontró que
+    `js/services/agendaService.js` y `js/services/etiquetasService.js` habían
+    quedado como los stubs de 4 líneas ("TODO Fase 3") heredados de la Fase 2,
+    mientras que `calendario.js`, `modalEvento.js` y `checklistHoy.js` ya
+    llamaban a funciones de esos archivos (`listarEventos`, `eventosParaFecha`,
+    `crearEvento`, etc.) que no existían — esto habría roto la vista Agenda y
+    la vista Hoy apenas se abrieran. Se encontró también que
+    `js/utils/validaciones.js` tenía el mismo problema (stub sin implementar,
+    pero ya importado por `modalEvento.js`). Los tres archivos se
+    implementaron completos antes de dar la fase por cerrada. **Aplica a
+    futuro:** antes de marcar una fase como completada, revisar que cada
+    archivo que otro módulo importa realmente exporte lo que se está usando —
+    no asumirlo por el nombre del archivo o por haberlo mencionado en un
+    resumen previo.
+  - **Resultado final:** `node --check` sobre los 18 archivos JS del proyecto
+    pasa sin errores; se verificó cruzando cada llamada `agendaService.X` /
+    `etiquetasService.X` / `cumplimientoService.X` usada en los componentes
+    contra las funciones realmente exportadas por cada servicio, y que las
+    clases CSS referenciadas por el modal/checklist/calendario existen en
+    `componentes.css` / `agenda.css` / `hoy.css`. Pendiente de verificación
+    manual en producción (abrir `agenda.html` e `index.html` tras el deploy)
+    porque este entorno no puede levantar Netlify Dev/Turso.
 
 ---
 

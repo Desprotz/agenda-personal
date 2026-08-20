@@ -54,63 +54,17 @@
             <span class="page-header__eyebrow" id="fecha-hoy">Martes 22 de julio</span>
             <h1>Hoy</h1>
           </div>
-          <button class="btn btn--primary" type="button">+ Actividad</button>
+          <button class="btn btn--primary" type="button" id="btn-nueva-actividad">+ Actividad</button>
         </header>
 
         <section class="section-block" aria-labelledby="titulo-horario">
           <h2 id="titulo-horario" class="section-block__title">
             Horario de hoy
-            <span class="streak-badge">racha: 5 días</span>
+            <span class="streak-badge" id="racha-badge" hidden></span>
           </h2>
 
-          <div class="hoy-item">
-            <span class="hoy-item__time">07:00</span>
-            <div class="hoy-item__body">
-              <div class="hoy-item__meta">
-                <button class="task-check" data-done="true" aria-label="Marcar como hecho" title="Hecho hoy">✓</button>
-                <span class="hoy-item__title" style="text-decoration: line-through; color: var(--text-muted);">Gimnasio</span>
-              </div>
-              <div class="hoy-item__meta">
-                <span class="chip chip--salud">salud</span>
-                <span class="text-meta">diaria</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="hoy-item">
-            <span class="hoy-item__time">10:00</span>
-            <div class="hoy-item__body">
-              <div class="hoy-item__title">Entrega módulo de autenticación</div>
-              <div class="hoy-item__meta">
-                <span class="chip chip--trabajo">trabajo</span>
-                <span class="text-meta">rango · día 4 de 6</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="hoy-item">
-            <span class="hoy-item__time">17:30</span>
-            <div class="hoy-item__body">
-              <div class="hoy-item__title">Reunión de equipo</div>
-              <div class="hoy-item__meta">
-                <span class="chip chip--trabajo">trabajo</span>
-                <span class="text-meta">puntual · alarma 15 min antes</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="hoy-item">
-            <span class="hoy-item__time">21:00</span>
-            <div class="hoy-item__body">
-              <div class="hoy-item__meta">
-                <button class="task-check" data-done="false" aria-label="Marcar como hecho" title="Marcar hecho"></button>
-                <span class="hoy-item__title">Leer 20 páginas</span>
-              </div>
-              <div class="hoy-item__meta">
-                <span class="chip chip--personal">personal</span>
-                <span class="text-meta">días específicos · L·M·V</span>
-              </div>
-            </div>
+          <div id="lista-horario-hoy">
+            <!-- Generado por JS: eventos de hoy + checklist "hecho hoy" (js/components/checklistHoy.js) -->
           </div>
         </section>
 
@@ -147,5 +101,6 @@
   </div>
 
   <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/components/checklistHoy.js"></script>
 </body>
 </html>

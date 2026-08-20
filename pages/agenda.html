@@ -49,7 +49,7 @@
             <span class="page-header__eyebrow" id="agenda-rango-fecha">Martes 22 de julio</span>
             <h1>Agenda</h1>
           </div>
-          <button class="btn btn--primary" type="button">+ Actividad</button>
+          <button class="btn btn--primary" type="button" id="btn-nueva-actividad">+ Actividad</button>
         </header>
 
         <div class="agenda-toolbar">
@@ -65,11 +65,8 @@
           </div>
         </div>
 
-        <div class="filter-bar" role="group" aria-label="Filtrar por etiqueta">
-          <button class="chip chip--trabajo" aria-pressed="false" type="button" data-categoria="trabajo">trabajo</button>
-          <button class="chip chip--personal" aria-pressed="false" type="button" data-categoria="personal">personal</button>
-          <button class="chip chip--salud" aria-pressed="false" type="button" data-categoria="salud">salud</button>
-          <button class="chip chip--estudio" aria-pressed="false" type="button" data-categoria="estudio">estudio</button>
+        <div class="filter-bar" role="group" aria-label="Filtrar por etiqueta" id="filtro-etiquetas">
+          <!-- Generado por JS: un chip por etiqueta real (js/components/calendario.js) -->
         </div>
 
         <!-- Vista día: timeline de horas -->

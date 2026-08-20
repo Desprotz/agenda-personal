@@ -100,10 +100,16 @@
   font-size: var(--fs-xs);
   color: var(--text-muted);
 }
-.event-block--trabajo  { --block-color: var(--accent-cyan); }
-.event-block--personal { --block-color: var(--accent-violet); }
-.event-block--salud    { --block-color: var(--accent-success); }
-.event-block--estudio  { --block-color: var(--accent-amber); }
+/* Fase 3: los bloques ahora abren el modal de edición al tocarlos. */
+.event-block, .week-event { cursor: pointer; }
+.event-block:hover, .week-event:hover { filter: brightness(1.12); }
+
+/* Actividades tipo 'rango' sin hora fija: ocupan toda la franja del día
+   visible, con menos opacidad para distinguirlas de un bloque con horario real. */
+.event-block--todo-el-dia, .week-event--todo-el-dia {
+  background: color-mix(in srgb, var(--block-color, var(--accent-cyan)) 8%, var(--bg-surface));
+  border-style: dashed;
+}
 
 /* ============================================================
    Barra de herramientas: selector de vista + navegación de fecha
@@ -264,11 +270,6 @@
   color: var(--text-muted);
   display: block;
 }
-.week-event--trabajo  { --block-color: var(--accent-cyan); }
-.week-event--personal { --block-color: var(--accent-violet); }
-.week-event--salud    { --block-color: var(--accent-success); }
-.week-event--estudio  { --block-color: var(--accent-amber); }
-
 .week-now-line {
   position: absolute;
   left: 0;

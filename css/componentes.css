@@ -149,6 +149,174 @@
   color: var(--accent-cyan);
 }
 
+/* --- Modal (crear/editar evento, etc. — Fase 3) --- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 7, 11, 0.72);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  padding: 0;
+}
+@media (min-width: 640px) {
+  .modal-backdrop { align-items: center; padding: var(--space-5); }
+}
+
+.modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  width: 100%;
+  max-width: 480px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
+}
+@media (min-width: 640px) {
+  .modal { border-radius: var(--radius-md); box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5); }
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  background: var(--bg-surface);
+}
+.modal__header h2 {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-md);
+}
+.modal__close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--fs-lg);
+  cursor: pointer;
+  line-height: 1;
+  padding: var(--space-1) var(--space-2);
+}
+.modal__close:hover { color: var(--text-primary); }
+
+.modal__body { padding: var(--space-4); }
+.modal__footer {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-surface);
+}
+.modal__footer .btn { flex: 1; }
+.modal__footer .btn--danger-outline { flex: none; }
+
+.btn--danger-outline {
+  background: transparent;
+  border-color: var(--accent-alert);
+  color: var(--accent-alert);
+}
+.btn--danger-outline:hover { background: color-mix(in srgb, var(--accent-alert) 12%, transparent); }
+
+.modal__error {
+  background: color-mix(in srgb, var(--accent-alert) 12%, var(--bg-surface));
+  border: 1px solid var(--accent-alert);
+  border-radius: var(--radius-sm);
+  color: var(--accent-alert);
+  font-size: var(--fs-sm);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.modal__error:empty { display: none; }
+
+.field-row { display: flex; gap: var(--space-3); }
+.field-row .field { flex: 1; }
+
+/* --- Selector de días de la semana (tipo 'dias_especificos') --- */
+.dias-semana-picker {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+.dias-semana-picker input { position: absolute; opacity: 0; pointer-events: none; }
+.dias-semana-picker label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  text-transform: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+.dias-semana-picker input:checked + label {
+  background: var(--accent-amber);
+  border-color: var(--accent-amber);
+  color: #1a1204;
+}
+.dias-semana-picker input:focus-visible + label { outline: 2px solid var(--accent-cyan); outline-offset: 2px; }
+
+/* --- Selector de etiqueta con color + "nueva etiqueta" --- */
+.etiqueta-picker { display: flex; gap: var(--space-2); align-items: center; }
+.etiqueta-picker select { flex: 1; }
+
+.nueva-etiqueta-form {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+.nueva-etiqueta-form input[type="text"] {
+  flex: 1;
+  background: var(--bg-gutter);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  min-height: 40px;
+}
+.nueva-etiqueta-form input[type="color"] {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+/* --- Alarma: checkbox + minutos de anticipación --- */
+.alarma-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.alarma-field label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.alarma-field select { min-height: 40px; }
+
 /* --- Botón grabar nota de voz --- */
 .btn--record {
   background: var(--bg-surface);

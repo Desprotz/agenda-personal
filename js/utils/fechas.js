@@ -89,3 +89,33 @@ export function formatearMesAnio(fecha) {
   const mes = MESES[fecha.getMonth()];
   return `${mes.charAt(0).toUpperCase() + mes.slice(1)} ${fecha.getFullYear()}`;
 }
+
+/**
+ * 'YYYY-MM-DD' en horario LOCAL (no UTC) — importante porque `toISOString()`
+ * convierte a UTC primero y puede correr la fecha un día en zonas horarias
+ * negativas (Colombia, UTC-5). Esta es la que se manda a las Netlify Functions.
+ */
+export function formatearFechaISO(fecha) {
+  const y = fecha.getFullYear();
+  const m = String(fecha.getMonth() + 1).padStart(2, '0');
+  const d = String(fecha.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/** Inversa de formatearFechaISO: 'YYYY-MM-DD' -> Date a medianoche local. */
+export function parsearFechaISO(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+/** Nombres cortos lun→dom (mismo orden que DIAS_CORTOS_LUN) indexados por getDay(). */
+const DIAS_CORTOS_POR_GETDAY = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+
+/** "Lun · Mié · Vie" a partir de un arreglo de números de getDay() (0=domingo). */
+export function formatearDiasSemana(diasSemana) {
+  return [...diasSemana]
+    .sort((a, b) => (a === 0 ? 7 : a) - (b === 0 ? 7 : b)) // domingo al final
+    .map((d) => DIAS_CORTOS_POR_GETDAY[d])
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(' · ');
+}
