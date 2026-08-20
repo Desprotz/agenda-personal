@@ -36,9 +36,9 @@
       </div>
     </nav>
 
-    <div class="next-alarm-strip">
+    <div class="next-alarm-strip" id="next-alarm-strip" hidden>
       <span class="next-alarm-strip__dot" aria-hidden="true"></span>
-      <span>próxima alarma → <strong>17:30 · Reunión de equipo</strong></span>
+      <span>próxima alarma → <strong id="proxima-alarma-texto"></strong></span>
     </div>
 
     <main class="app-main">
@@ -104,5 +104,7 @@
 
   <script type="module" src="../js/main.js"></script>
   <script type="module" src="../js/components/calendario.js"></script>
+  <script type="module" src="../js/components/proximaAlarma.js"></script>
+  <script type="module" src="../js/components/alarmaManager.js"></script>
 </body>
 </html>

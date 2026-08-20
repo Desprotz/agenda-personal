@@ -111,6 +111,17 @@ export function parsearFechaISO(iso) {
 /** Nombres cortos lun→dom (mismo orden que DIAS_CORTOS_LUN) indexados por getDay(). */
 const DIAS_CORTOS_POR_GETDAY = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
+/** Nombres cortos de mes (para fechas compactas, ej. "vie 9 ago"). */
+const MESES_CORTOS = MESES.map((m) => m.slice(0, 3));
+
+/**
+ * "vie 9 ago" — fecha compacta con día de semana. Usada por el widget de
+ * "próxima alarma" (Fase 5) cuando la alarma no es hoy ni mañana.
+ */
+export function formatearFechaCorta(fecha) {
+  return `${DIAS_CORTOS_POR_GETDAY[fecha.getDay()]} ${fecha.getDate()} ${MESES_CORTOS[fecha.getMonth()]}`;
+}
+
 /** "Lun · Mié · Vie" a partir de un arreglo de números de getDay() (0=domingo). */
 export function formatearDiasSemana(diasSemana) {
   return [...diasSemana]

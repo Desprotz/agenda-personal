@@ -3,7 +3,7 @@
 > Este archivo es la fuente de verdad del proyecto. Se actualiza con cada avance,
 > decisión técnica y cambio de rumbo. Antes de tocar código, revisar este documento.
 
-Última actualización: 2026-08-20 (v7 — Fase 4 cerrada: notas + imágenes + audio + vínculo a evento, con Netlify Blobs)
+Última actualización: 2026-08-20 (v8 — Fase 5 cerrada: notificaciones/alarmas locales, próxima alarma real, recordatorio de diario, Service Worker)
 
 ---
 
@@ -271,9 +271,12 @@ Dado que el uso principal es desde iPhone, esto cambia el diseño técnico:
       Notas (`js/components/notas.js`) y "Últimas notas" en Hoy
       (`notasHoy.js`) ya corren contra datos reales, con archivos en Netlify
       Blobs. Ver bitácora para el detalle y las decisiones tomadas.
-- [ ] **Fase 5** — Sistema de notificaciones/alarmas + Service Worker
+- [x] **Fase 5** — Sistema de notificaciones/alarmas + Service Worker
       + **vista de "próxima alarma"** en la barra superior
       + **recordatorio de diario** si no se ha escrito nota en el día.
+      **Completada 2026-08-20**: implementada la opción 2 de la sección 4.3
+      (notificaciones locales mientras la PWA está abierta/reciente, sin
+      servidor todavía). Ver bitácora para el detalle completo.
 - [ ] **Fase 6** — **Buscador global** (eventos + notas) + **exportar/backup** en JSON.
 - [ ] **Fase 7** — Pulido visual, responsive, despliegue final en Netlify.
 
@@ -911,5 +914,111 @@ de código real y no un calendario genérico con tema oscuro.
   no afecta el uso pensado para este proyecto, pero queda anotado por si acaso.
 - Safari 18.4 introdujo "Declarative Web Push" (envío de push sin tanta lógica
   de Service Worker) y Screen Wake Lock (evita que la pantalla se apague) — se
-  evalúan cuando lleguemos a la Fase 5.
+  evaluó al llegar a la Fase 5 (ver bitácora) y se decidió no usarlo todavía,
+  quedó anotado para cuando se migre a Web Push real.
 - La Badge API (número en el ícono de la app) funciona desde iOS 16.4.
+
+- **2026-08-20** — **Fase 5 cerrada: notificaciones/alarmas locales, próxima
+  alarma real, recordatorio de diario, Service Worker.**
+  - **Decisión de alcance:** se implementó la **opción 2** de la sección 4.3
+    (notificaciones locales mientras la PWA está abierta o recientemente
+    activa, sin servidor de por medio), tal como recomendaba este mismo
+    documento para el MVP. **No** se implementó Web Push real vía APNs
+    todavía — eso implicaría agregar una Netlify Scheduled Function, guardar
+    la suscripción push en Turso (tabla nueva) y manejar claves VAPID/APNs,
+    que es explícitamente el "siguiente paso si esto resulta poco confiable"
+    y no parte de esta fase. Queda pendiente evaluar tras probar en el
+    iPhone real (ver "Pendiente" más abajo).
+  - **`js/services/notificacionesService.js`** (implementado) —
+    `soportado()`, `permisoActual()`, `registrarServiceWorker()`,
+    `pedirPermiso()` (debe llamarse solo desde un manejador de click, nunca
+    automático — restricción de iOS) y `notificar(titulo, opciones)`, que
+    muestra la notificación vía `registro.showNotification()` del Service
+    Worker (más confiable con la app en background reciente) con fallback a
+    `new Notification()` si no hay SW disponible.
+  - **`js/components/alarmaManager.js`** (implementado) — dos
+    responsabilidades en un mismo archivo, cargado en **todas** las páginas
+    (`index.html`, `pages/agenda.html`, `pages/notas.html`,
+    `pages/ajustes.html`) para que las alarmas funcionen sin importar qué
+    vista esté abierta:
+    1. **Motor de alarmas**: cada 30s (`INTERVALO_CHEQUEO_MS`) revisa los
+       eventos de hoy con `tiene_alarma` activada y hora fija, calcula la
+       hora exacta de la alarma (`hora_inicio - minutos_antes_alarma`), y
+       dispara la notificación si "ahora" cae dentro de una ventana de
+       gracia de 5 minutos después de esa hora. Se eligió **polling por
+       intervalo en vez de `setTimeout` exacto por alarma** a propósito: es
+       más simple y se autocorrige solo si el navegador puso en pausa los
+       timers (pestaña en background) — el siguiente tick, o el chequeo
+       inmediato al volver a `visibilitychange: visible`, detecta igual la
+       alarma mientras siga dentro de la ventana de gracia. Cada alarma
+       disparada se marca en `localStorage` (`agenda:alarma-disparada:{id}:{fecha}`)
+       para no repetirla si se recarga la página.
+       También corre el **recordatorio de diario** (sección 8): desde las
+       21:00, si no hay ninguna nota con `fecha` = hoy, notifica una vez
+       (mismo mecanismo de marca en `localStorage`, una sola vez al día
+       tanto si escribió como si no).
+       El motor **nunca pide permiso por su cuenta** — solo arranca si
+       `permisoActual() === 'granted'`.
+    2. **Botón "Activar notificaciones" de `ajustes.html`**: pinta el
+       estado real del permiso al cargar la página (`granted` / `denied` /
+       `unsupported` / sin decidir), y al hacer click llama a
+       `notificacionesService.pedirPermiso()` — el único lugar de toda la
+       app donde se pide permiso, y siempre dentro del manejador de click
+       (nunca en `DOMContentLoaded`), como exige iOS. Si se concede, arranca
+       el motor de una vez sin necesitar recargar la página.
+  - **`js/components/proximaAlarma.js`** (implementado) — reemplaza el
+    texto fijo de ejemplo (`17:30 · Reunión de equipo`) por la alarma real
+    más próxima. Busca día por día (hasta 14 días adelante) el primer
+    evento con `tiene_alarma` cuya hora de alarma sea futura; como se
+    recorre en orden cronológico, corta la búsqueda apenas un día produce
+    un candidato. Formatea la hora como `"17:30"` si es hoy, `"mañana
+    08:00"` si es mañana, o `"vie 9 ago · 08:00"` si es más adelante (nueva
+    utilidad `formatearFechaCorta` en `utils/fechas.js`). Si no hay ninguna
+    alarma en el horizonte de búsqueda, **oculta el widget entero**
+    (`strip.hidden = true`) en vez de dejarlo con texto vacío. Se actualiza
+    cada 60s. Solo corre en `index.html` y `pages/agenda.html` — las únicas
+    páginas que tienen el widget en el HTML (se les agregó
+    `id="next-alarm-strip"` al contenedor para poder ocultarlo/mostrarlo).
+  - **`sw/service-worker.js`** (reescrito) — se agregó cache básico de
+    "shell" estático (HTML/CSS/JS core + manifest + íconos) con estrategia
+    **network-first, fallback a cache** (prioriza contenido fresco cuando
+    hay red; solo usa lo cacheado si de verdad no hay conexión), y
+    `notificationclick` que enfoca la ventana existente de la PWA o abre una
+    nueva si no hay ninguna. **Decisión importante:** las rutas `/api/*`
+    (Netlify Functions) están explícitamente excluidas del cache — se
+    filtran antes de interceptar el `fetch` — porque cachear una respuesta
+    de la API mostraría eventos/notas desactualizados sin ningún aviso, que
+    es peor que no tener nada offline. Este SW solo cachea el shell
+    estático, nunca datos.
+  - **Sin cambios en el esquema de Turso**: la opción 2 no necesita guardar
+    ninguna suscripción de push en la base — todo el estado de "ya se
+    avisó" vive en `localStorage` del propio dispositivo. Los campos
+    `tiene_alarma` / `minutos_antes_alarma` de `eventos` (ya existentes
+    desde la Fase 3) fueron suficientes.
+  - **Pendiente / limitaciones conocidas:**
+    - **No probado en el iPhone real todavía** (este entorno no puede
+      levantar Netlify Dev + Turso ni instalar una PWA) — verificación
+      hecha de forma estática: `node --check` en todos los `.js`, cruce de
+      cada función usada en `alarmaManager.js`/`proximaAlarma.js` contra lo
+      que `agendaService.js`/`notasService.js`/`notificacionesService.js`/
+      `utils/fechas.js` realmente exportan, y confirmación de que cada
+      `id` del HTML que el JS busca (`next-alarm-strip`,
+      `proxima-alarma-texto`, `btn-activar-notificaciones`,
+      `estado-notificaciones`) existe en el HTML correspondiente.
+      **Recomendado probar en el iPhone real, en particular**: pedir el
+      permiso desde `ajustes.html`, dejar el celular bloqueado unos
+      minutos con una alarma programada dentro de ese rango, y ver si
+      la notificación efectivamente llega (esto es justo lo que la
+      sección 4.3 advertía como poco confiable en la opción 2 — si falla
+      seguido, ahí se justifica migrar a Web Push real vía APNs).
+    - El "recordatorio de diario" a las 21:00 depende de que la PWA esté
+      abierta (o el intervalo de 30s siga corriendo) en ese momento — con
+      la opción 2, si el iPhone lleva rato bloqueado a esa hora, es posible
+      que el aviso no llegue justo a las 21:00 sino recién cuando se
+      desbloquee y la app haga el chequeo de `visibilitychange`, que puede
+      ser bastante después. Es una limitación conocida y aceptada de la
+      opción 2, no un bug.
+    - La ventana de gracia de 5 minutos es un valor arbitrario razonable,
+      no viene de ningún requisito explícito — se puede ajustar en
+      `VENTANA_GRACIA_MIN` (`alarmaManager.js`) si en el uso real resulta
+      muy corta o muy larga.
